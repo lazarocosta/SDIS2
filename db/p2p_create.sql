@@ -8,8 +8,8 @@ CREATE TABLE users (
 	email		text NOT NULL UNIQUE,
 	password	text NOT NULL,
 	last_time	timestamp DEFAULT current_date,
-	last_ip		inet NOT NULL,
-	last_port	integer NOT NULL
+	last_ip		inet ,
+	last_port	integer
 );
 
 CREATE TABLE files (
