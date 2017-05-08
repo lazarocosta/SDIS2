@@ -17,12 +17,16 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import database.MyConnection;
+import database.Users;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
 
 public class Login extends JFrame{
 	
-	public static Login mainWindow;
+	public static Login frame;
 
 	private JTextField email_input;
 	private JPasswordField password_input;
@@ -34,8 +38,8 @@ public class Login extends JFrame{
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					mainWindow = new Login();
-					mainWindow.setVisible(true);
+					frame = new Login();
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -113,9 +117,12 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				Connection c = MyConnection.createConnection();
+				if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
 				FileManager fileManager = new FileManager();
 				fileManager.setVisible(true);
-				mainWindow.dispose();
+				frame.dispose();
+				}
 			}
 		});
 		this.getContentPane().add(login_btn, "2, 14");
@@ -124,9 +131,9 @@ public class Login extends JFrame{
 		register_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Register registerWindow = new Register();
-				registerWindow.setVisible(true);
-				mainWindow.setVisible(false);
+				Register.frame = new Register();
+				Register.frame.setVisible(true);
+				frame.setVisible(false);
 			}
 		});
 		this.getContentPane().add(register_btn, "2, 16");
