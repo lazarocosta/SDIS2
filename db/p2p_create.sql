@@ -7,7 +7,7 @@ CREATE TABLE users (
 	user_id		serial PRIMARY KEY,
 	email		text NOT NULL UNIQUE,
 	password	text NOT NULL,
-	last_time	timestamp DEFAULT current_date,
+	last_time	timestamp DEFAULT current_timestamp,
 	last_ip		inet ,
 	last_port	integer
 );
