@@ -119,7 +119,7 @@ public class Register extends JFrame{
 		register_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if((password_input.getPassword().length > 8) && password_input.getText().equals(password_confirm_input.getText())){
+				if((password_input.getPassword().length >= 8) && password_input.getText().equals(password_confirm_input.getText())){
 					Connection c = MyConnection.createConnection();
 					if(Users.registerNewUser(c, email_input.getText(), password_input.getText())){
 						frame.dispose();
