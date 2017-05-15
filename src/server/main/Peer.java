@@ -1,5 +1,6 @@
 package server.main;
 
+import java.io.IOException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -9,10 +10,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bitlet.weupnp.GatewayDevice;
+import org.xml.sax.SAXException;
+
 import server.protocol.ClientInterface;
 import utils.Utils;
 
 public class Peer {
+
+	public static String email = null;
+	public static int port = 60000;
+	public static GatewayDevice activeGW = new GatewayDevice();
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -35,7 +43,7 @@ public class Peer {
 	public static ConcurrentHashMap<String,int[]> rdMap = new ConcurrentHashMap<String,int[]>();
 	public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
 	public static HashSet<String> deletedFiles = new HashSet<String>();
-	
+
 	/**
 	 * Main service starter
 	 * @param args Server arguments by the following order:
@@ -130,7 +138,7 @@ public class Peer {
 		Thread mdbThread = new Thread(mdbListener);
 		Thread rdWriterThread = new Thread(rdWriter);
 		try {
-		// Bind the remote object's stub in the registry
+			// Bind the remote object's stub in the registry
 			ClientAppListener clientAppListener = new ClientAppListener();
 
 			ClientInterface stub = (ClientInterface) UnicastRemoteObject.exportObject(clientAppListener, 0);
@@ -140,7 +148,7 @@ public class Peer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		if(protocolVersion.equals("2.0")){
 			RDChecker rdChecker = new RDChecker();
 			Thread rdCheckerThread = new Thread(rdChecker);
@@ -161,6 +169,16 @@ public class Peer {
 		System.out.println("Data Path: " + dataPath);
 		System.out.println("Max capacity: " + 0);
 		System.out.println("Remote Object Name: " + remoteObject);
+	}
+
+	public static void safeClose(){
+		try {
+			activeGW.deletePortMapping(port,"TCP");
+			activeGW.deletePortMapping(port,"UDP");
+		} catch (IOException | SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -19,6 +19,8 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import database.MyConnection;
 import database.Users;
+import server.main.Peer;
+import utils.Utils;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -119,6 +121,8 @@ public class Login extends JFrame{
 			public void mouseClicked(MouseEvent e) {
 				Connection c = MyConnection.createConnection();
 				if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
+				Peer.email = email_input.getText();
+				Utils.doPortForwarding();
 				FileManager.frame = new FileManager();
 				FileManager.frame.setVisible(true);
 				frame.dispose();

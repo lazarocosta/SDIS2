@@ -17,6 +17,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import server.main.Peer;
+
 public class Preferences extends JFrame{
 	
 	public static Preferences frame;
@@ -84,6 +86,7 @@ public class Preferences extends JFrame{
 		confirm_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				Peer.port = (int) port_input.getValue();
 				FileManager.frame.setEnabled(true);
 				Preferences.frame.dispose();
 			}
