@@ -59,7 +59,7 @@ public class Login extends JFrame{
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		this.setTitle("P2P Client Login");
+		this.setTitle("P2P Cloud Login");
 		this.setResizable(false);
 		this.setBounds(100, 100, 450, 300);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -89,7 +89,7 @@ public class Login extends JFrame{
 				FormSpecs.RELATED_GAP_ROWSPEC,});
 		this.getContentPane().setLayout(formLayout);
 		
-		JLabel title_lbl = new JLabel("P2P Client");
+		JLabel title_lbl = new JLabel("P2P Cloud");
 		this.getContentPane().add(title_lbl, "2, 2");
 		title_lbl.setHorizontalAlignment(SwingConstants.CENTER);
 		title_lbl.setFont(new Font("Impact", Font.PLAIN, 19));
@@ -119,8 +119,8 @@ public class Login extends JFrame{
 			public void mouseClicked(MouseEvent e) {
 				Connection c = MyConnection.createConnection();
 				if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
-				FileManager fileManager = new FileManager();
-				fileManager.setVisible(true);
+				FileManager.frame = new FileManager();
+				FileManager.frame.setVisible(true);
 				frame.dispose();
 				}
 			}

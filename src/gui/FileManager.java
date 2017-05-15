@@ -1,50 +1,35 @@
 package gui;
 
-import java.awt.EventQueue;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JMenu;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import java.awt.Component;
-import java.awt.GridLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.BoxLayout;
 import javax.swing.JTree;
-import com.jgoodies.forms.layout.FormLayout;
+import javax.swing.border.EmptyBorder;
+
 import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 public class FileManager extends JFrame {
 
-	private JPanel contentPane;
+	public static FileManager frame;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					FileManager frame = new FileManager();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	private JPanel contentPane;
 
 	/**
 	 * Create the frame.
 	 */
 	public FileManager() {
-		setTitle("P2P CLient File Manager");
+		setTitle("P2P Cloud File Manager");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		
@@ -65,6 +50,24 @@ public class FileManager extends JFrame {
 		
 		JMenuItem exit_item = new JMenuItem("Exit");
 		file_menu.add(exit_item);
+		
+		JMenu options_menu = new JMenu("Options");
+		menuBar.add(options_menu);
+		
+		JMenuItem preferences_item = new JMenuItem("Preferences");
+		preferences_item.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Preferences.frame = new Preferences();
+				Preferences.frame.setVisible(true);
+				//options_menu.setPopupMenuVisible(false);
+				frame.setEnabled(false);
+			}
+		});
+		
+		JMenuItem change_password_item = new JMenuItem("Change password");
+		options_menu.add(change_password_item);
+		options_menu.add(preferences_item);
 		
 		JMenu help_menu = new JMenu("Help");
 		menuBar.add(help_menu);
