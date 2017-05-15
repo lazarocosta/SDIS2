@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -26,14 +26,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.bitlet.weupnp.GatewayDevice;
 import org.bitlet.weupnp.GatewayDiscover;
 import org.bitlet.weupnp.PortMappingEntry;
-import org.fourthline.cling.UpnpService;
-import org.fourthline.cling.UpnpServiceImpl;
-import org.fourthline.cling.model.message.header.STAllHeader;
-import org.fourthline.cling.registry.RegistryListener;
-import org.fourthline.cling.support.igd.PortMappingListener;
-import org.fourthline.cling.support.model.PortMapping;
 import org.xml.sax.SAXException;
 
+import de.uniba.wiai.lspi.chord.data.URL;
+import de.uniba.wiai.lspi.chord.service.Chord;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
+import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 import server.main.Peer;
 
 public final class Utils {
@@ -282,6 +280,29 @@ public final class Utils {
 			e.printStackTrace();
 		}
 
+	}
+
+	public static void joinChordNetwork(){
+		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
+		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
+		URL localURL = null;
+		try {
+				localURL = new URL (protocol + "://"+Peer.activeGW.getExternalIPAddress()+":"+Peer.port+"/");
+		} catch (IOException | SAXException e){
+			throw new RuntimeException (e);
+		}
+		URL bootstrapURL = null;
+		try {
+			bootstrapURL = new URL (protocol + "://telmo20.ddns.net:8000/");
+		} catch (MalformedURLException e){
+			throw new RuntimeException (e);
+		}
+		Peer.chord = new ChordImpl();
+		try {
+			Peer.chord.join(localURL , bootstrapURL);
+		} catch (ServiceException e) {
+			throw new RuntimeException("Could not join DHT!", e);
+		}
 	}
 
 }

@@ -123,6 +123,7 @@ public class Login extends JFrame{
 				if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
 				Peer.email = email_input.getText();
 				Utils.doPortForwarding();
+				Utils.joinChordNetwork();
 				FileManager.frame = new FileManager();
 				FileManager.frame.setVisible(true);
 				frame.dispose();

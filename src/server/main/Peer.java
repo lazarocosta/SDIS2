@@ -13,6 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bitlet.weupnp.GatewayDevice;
 import org.xml.sax.SAXException;
 
+import de.uniba.wiai.lspi.chord.service.Chord;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
+import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 import server.protocol.ClientInterface;
 import utils.Utils;
 
@@ -21,6 +24,7 @@ public class Peer {
 	public static String email = null;
 	public static int port = 60000;
 	public static GatewayDevice activeGW = new GatewayDevice();
+	public static Chord chord = null;//new ChordImpl();
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -175,7 +179,8 @@ public class Peer {
 		try {
 			activeGW.deletePortMapping(port,"TCP");
 			activeGW.deletePortMapping(port,"UDP");
-		} catch (IOException | SAXException e) {
+			Peer.chord.leave();
+		} catch (IOException | SAXException | ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
