@@ -25,6 +25,7 @@ import utils.Utils;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Login extends JFrame{
 	
@@ -119,14 +120,33 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Connection c = MyConnection.createConnection();
-				if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
-				Peer.email = email_input.getText();
-				Utils.doPortForwarding();
-				Utils.joinChordNetwork();
-				FileManager.frame = new FileManager();
-				FileManager.frame.setVisible(true);
-				frame.dispose();
+				Connection c;
+				Login.frame.setEnabled(false);
+				ProgressBar.frame = new ProgressBar();
+				ProgressBar.frame.setVisible(true);
+				ProgressBar.frame.setStatus("Connecting to database...");
+				try {
+					c = MyConnection.createConnection();
+					ProgressBar.frame.setStatus("Attempt to login...");
+					if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
+					Peer.email = email_input.getText();
+					ProgressBar.frame.setStatus("Opening port...");
+					Utils.doPortForwarding();
+					ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
+					//Utils.joinChordNetwork();
+					Login.frame.setEnabled(true);
+					ProgressBar.frame.dispose();
+					FileManager.frame = new FileManager();
+					FileManager.frame.setVisible(true);
+					frame.dispose();
+					}
+					Login.frame.setEnabled(true);
+					ProgressBar.frame.dispose();
+				} catch (SQLException | ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					Login.frame.setEnabled(true);
+					ProgressBar.frame.dispose();
+					e1.printStackTrace();
 				}
 			}
 		});

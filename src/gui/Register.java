@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -120,10 +121,17 @@ public class Register extends JFrame{
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if((password_input.getPassword().length >= 8) && password_input.getText().equals(password_confirm_input.getText())){
-					Connection c = MyConnection.createConnection();
+					Connection c;
+					try {
+						c = MyConnection.createConnection();
+					
 					if(Users.registerNewUser(c, email_input.getText(), password_input.getText())){
 						frame.dispose();
 						Login.frame.setVisible(true);
+					}
+					} catch (ClassNotFoundException | SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
 				}
 			}

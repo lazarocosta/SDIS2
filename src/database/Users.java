@@ -9,8 +9,7 @@ import java.sql.SQLException;
 
 public class Users {
 
-	public static boolean isLoginCorrect(Connection c, String email, String password){
-		try {
+	public static boolean isLoginCorrect(Connection c, String email, String password) throws SQLException{
 			PreparedStatement preparedStatement = c.prepareStatement("SELECT * FROM p2p.users WHERE email = ? AND password = ?");
 			preparedStatement.setString(1,email);
 
@@ -18,15 +17,9 @@ public class Users {
 			ResultSet rs = preparedStatement.executeQuery();
 
 			return rs.next();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
 	}
 	
-	public static boolean registerNewUser(Connection c, String email, String password){
-		try {
+	public static boolean registerNewUser(Connection c, String email, String password) throws SQLException{
 			PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.users(email, password) VALUES (?, ?)");
 			preparedStatement.setString(1,email);
 
@@ -34,11 +27,6 @@ public class Users {
 			preparedStatement.executeUpdate();
 
 			return true;
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
 	}
 
 	private static String hashPassword(String password){
