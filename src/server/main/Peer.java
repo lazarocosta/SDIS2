@@ -219,6 +219,7 @@ public class Peer{
 		}
 	}
 
+
 	public void initializeIPAddressesAndPorts(boolean localConnection) {
 
 		if(localConnection){
