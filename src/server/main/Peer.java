@@ -51,7 +51,7 @@ public class Peer{
 	private String IPAddress = null;
 	private int port = 60000;
 	private GatewayDevice activeGW = new GatewayDevice();
-	private Chord chord = null;//new ChordImpl();
+	private ChordImpl chord = null;//new ChordImpl();
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -213,7 +213,7 @@ public class Peer{
 			activeGW.deletePortMapping(port,"UDP");
 			chord.remove(new Key("AVAILABLE"), IPAddress + ":" + port);
 			chord.leave();
-		} catch (IOException | SAXException | ServiceException e) {
+		} catch (IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -367,6 +367,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.join(localURL , bootstrapURL);
+				chord.insert(new Key("AVAILABLE"), IPAddress+":"+port);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not join DHT!", e);
 			}
@@ -374,15 +375,10 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.create(localURL);
+				chord.insertAsync(new Key("AVAILABLE"), IPAddress+":"+port);
 			} catch (ServiceException e) {
-				throw new RuntimeException("Could not create DHT!", e);
+					throw new RuntimeException("Could not create DHT!", e);
 			}
-		}
-		try {
-			chord.insert(new Key("AVAILABLE"), IPAddress+":"+port);
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -407,7 +403,7 @@ public class Peer{
 		return chord;
 	}
 
-	public void setChord(Chord chord) {
+	public void setChord(ChordImpl chord) {
 		this.chord = chord;
 	}
 
