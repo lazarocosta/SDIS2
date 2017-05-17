@@ -21,6 +21,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import de.uniba.wiai.lspi.chord.console.command.entry.Key;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
 
 import javax.swing.border.BevelBorder;
@@ -28,6 +30,8 @@ import javax.swing.JLabel;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.Set;
 
 public class FileManager extends JFrame {
 
@@ -112,7 +116,20 @@ public class FileManager extends JFrame {
 						FormSpecs.DEFAULT_ROWSPEC,}));
 
 		JButton btnNewButton = new JButton("New button");
-		contentPane.add(btnNewButton, "2, 2");
+		btnNewButton.addMouseListener(new  MouseAdapter(){
+			public void mouseClicked(MouseEvent arg0){
+				try {
+					Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+					for(Serializable s : paulo){
+						System.out.println((String)s);
+					}
+				} catch (ServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+		});
 
 		JButton btnNewButton_1 = new JButton("New button");
 		contentPane.add(btnNewButton_1, "4, 2");
