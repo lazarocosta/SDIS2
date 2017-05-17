@@ -378,12 +378,12 @@ public class Peer{
 				throw new RuntimeException("Could not create DHT!", e);
 			}
 		}
-		try {
+		/*try {
 			chord.insert(new Key("AVAILABLE"), IPAddress+":"+port);
 		} catch (ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 
