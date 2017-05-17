@@ -207,6 +207,46 @@ public class Peer{
 		System.out.println("Remote Object Name: " + remoteObject);
 	}
 
+	public void initialize(){		
+		path = "." + Utils.FS + serverID;
+		dataPath = path + Utils.FS + "data";
+		Utils.initFileSystem();
+		usedCapacity = Utils.getusedCapacity();
+
+		System.out.println("Starting services...");
+
+		Listener listener = new Listener();
+
+		Thread listenerThread = new Thread(listener);
+		try {
+			// Bind the remote object's stub in the registry
+			ClientAppListener clientAppListener = new ClientAppListener();
+
+			ClientInterface stub = (ClientInterface) UnicastRemoteObject.exportObject(clientAppListener, 0);
+			Registry registry = LocateRegistry.getRegistry();
+			registry.bind(remoteObject, stub);
+		} catch (RemoteException | AlreadyBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if(protocolVersion.equals("2.0")){
+			RDChecker rdChecker = new RDChecker();
+			Thread rdCheckerThread = new Thread(rdChecker);
+			rdCheckerThread.start();
+		}
+
+		listenerThread.start();
+
+		System.out.println("Services running...");
+
+		System.out.println("Running configurations:");
+		System.out.println("Server ID: " + serverID);
+		System.out.println("Data Path: " + dataPath);
+		System.out.println("Max capacity: " + 0);
+		System.out.println("Remote Object Name: " + remoteObject);
+	}
+
 	public void safeClose(){
 		try {
 			activeGW.deletePortMapping(port,"TCP");
@@ -238,7 +278,7 @@ public class Peer{
 					{
 						InetAddress addr = a.nextElement();
 						if(addr instanceof Inet4Address)
-						choicestmp.add(addr.getHostAddress());
+							choicestmp.add(addr.getHostAddress());
 						System.out.println("  " + addr.getHostAddress());
 					}
 				}
@@ -377,7 +417,7 @@ public class Peer{
 				chord.create(localURL);
 				chord.insertAsync(new Key("AVAILABLE"), IPAddress+":"+port);
 			} catch (ServiceException e) {
-					throw new RuntimeException("Could not create DHT!", e);
+				throw new RuntimeException("Could not create DHT!", e);
 			}
 		}
 	}

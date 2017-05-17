@@ -147,7 +147,7 @@ public final class Utils {
 	public static final boolean initFileSystem(){
 		File dir = new File(Peer.dataPath);
 		dir.mkdirs();
-		File rdFile = new File(Peer.rdFile);
+		/*File rdFile = new File(Peer.rdFile);
 		File mdFile = new File(Peer.mdFile);
 		try {
 			if (!rdFile.exists()) {
@@ -161,7 +161,7 @@ public final class Utils {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
 		return true;
 	}

@@ -128,8 +128,8 @@ public class FileManager extends JFrame {
 					e.printStackTrace();
 				}
 			}
-			
 		});
+		contentPane.add(btnNewButton, "2, 2");
 
 		JButton btnNewButton_1 = new JButton("New button");
 		contentPane.add(btnNewButton_1, "4, 2");

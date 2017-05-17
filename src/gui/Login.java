@@ -150,8 +150,8 @@ public class Login extends JFrame{
 							Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
 						}else{
 							Peer.node.joinChordNetwork("telmo20.ddns.net:8000");
-
 						}
+						Peer.node.initialize();
 						Login.frame.setEnabled(true);
 						ProgressBar.frame.dispose();
 						FileManager.frame = new FileManager();
