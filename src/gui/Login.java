@@ -131,6 +131,7 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				Connection c;
 				Login.frame.setEnabled(false);
 				ProgressBar.frame = new ProgressBar();
 				ProgressBar.frame.setVisible(true);
@@ -149,8 +150,38 @@ public class Login extends JFrame{
 							Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
 						}else{
 							Peer.node.joinChordNetwork("telmo20.ddns.net:8000");
-
 						}
+						/*Thread teste = new Thread() {
+ 					public void run() {
+ 						try {
+ 							Connection c = MyConnection.createConnection();
+ 							ProgressBar.frame.setStatus("Attempt to login...");
+ 							if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
+ 								String email = email_input.getText();
+ 								Random r = new Random();
+ 								Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);
+ 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
+ 								Peer.node.initializeIPAddressesAndPorts(local_check.isSelected());
+ 								ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
+ 								if(local_check.isSelected()){
+ 									Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
+ 								}else{
+ 									Peer.node.joinChordNetwork("telmo20.ddns.net:8000");
+ 								}
+ 								Peer.node.initialize();
+ 								Login.frame.setEnabled(true);
+ 								ProgressBar.frame.dispose();
+ 								FileManager.frame = new FileManager();
+ 								FileManager.frame.setVisible(true);
+ 								frame.dispose();
+ 							}
+ 							Login.frame.setEnabled(true);
+ 							ProgressBar.frame.dispose();
+ 						} catch (SQLException | ClassNotFoundException e1) {
+ 							// TODO Auto-generated catch block
+ 							Login.frame.setEnabled(true);
+ 							ProgressBar.frame.dispose();
+ 							e1.printStackTrace();*/
 						Login.frame.setEnabled(true);
 						ProgressBar.frame.dispose();
 						FileManager.frame = new FileManager();

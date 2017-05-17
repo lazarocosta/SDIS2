@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import de.uniba.wiai.lspi.chord.console.command.entry.Key;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
 import utils.Utils;
 
@@ -37,6 +39,12 @@ public class Delete implements Runnable {
                 e.printStackTrace();
             }
         }
+        try {
+			Peer.node.getChord().remove(new Key(this.fileID), Peer.node.getIPAddress()+":"+Peer.node.getPort());
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         int chunkNo = 0;
         int[] rds = Peer.rdMap.get(this.fileID + Utils.FS + chunkNo);
         while (rds != null) {

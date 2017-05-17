@@ -135,7 +135,6 @@ public class FileManager extends JFrame {
 					e.printStackTrace();
 				}
 			}
-
 		});
 		contentPane.add(btnNewButton, "2, 2");
 
