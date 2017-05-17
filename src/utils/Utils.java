@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -196,6 +197,13 @@ public final class Utils {
 
 	public static String[] getTCPfromSenderID(String senderID) {
 		return senderID.split("\\.\\.");
+	}
+	
+	public String[] getFileIds(){
+		File dir = new File(Peer.dataPath);
+        String[] fileIds = dir.list();
+		
+		return fileIds;
 	}
 
 }

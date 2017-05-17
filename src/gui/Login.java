@@ -131,15 +131,14 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Connection c;
 				Login.frame.setEnabled(false);
 				ProgressBar.frame = new ProgressBar();
 				ProgressBar.frame.setVisible(true);
 				ProgressBar.frame.setStatus("Connecting to database...");
 				try {
-					c = MyConnection.createConnection();
+					Peer.c = MyConnection.createConnection();
 					ProgressBar.frame.setStatus("Attempt to login...");
-					if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
+					if(Users.isLoginCorrect(Peer.c, email_input.getText(), password_input.getText())){
 						String email = email_input.getText();
 						Random r = new Random();
 						Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);

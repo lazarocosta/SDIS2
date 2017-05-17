@@ -12,6 +12,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import utils.Utils;
 public class Peer{
 
 	public static Peer node = null;
+	public static Connection c;
 	private String email = null;
 	private String IPAddress = null;
 	private int port = 60000;

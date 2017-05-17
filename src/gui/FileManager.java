@@ -21,6 +21,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import database.Files;
+import database.MyConnection;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
@@ -31,7 +33,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Set;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class FileManager extends JFrame {
 
@@ -128,8 +135,9 @@ public class FileManager extends JFrame {
 					e.printStackTrace();
 				}
 			}
-			
+
 		});
+		contentPane.add(btnNewButton, "2, 2");
 
 		JButton btnNewButton_1 = new JButton("New button");
 		contentPane.add(btnNewButton_1, "4, 2");
@@ -141,17 +149,36 @@ public class FileManager extends JFrame {
 		contentPane.add(btnNewButton_3, "8, 2");
 
 		JTree tree = new JTree();
+
+		tree.setModel(new DefaultTreeModel(
+				new DefaultMutableTreeNode("JTree") {
+					{
+						try{
+							DefaultMutableTreeNode node_1 = new DefaultMutableTreeNode("Files");
+							
+							ArrayList<String[]> files = Files.getFileNames(Peer.c, Peer.node.getEmail());
+							for(String[] file : files){
+								node_1.add(new DefaultMutableTreeNode(file[0] +"  date: "+file[1]));
+							}
+							add(node_1);
+						} catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				}
+		));
 		contentPane.add(tree, "2, 4, 7, 1, fill, fill");
 
 		JPanel footer = new JPanel();
 		footer.setToolTipText("");
 		footer.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		contentPane.add(footer, "1, 6, 9, 1, fill, fill");
-		
+
 		JLabel footer_lbl = new JLabel(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (CONNECTED)");
 		footer.add(footer_lbl, "2, 2, left, top");
 
-	}
-	private static void addPopup(Component component, final JPopupMenu popup) {
-	}
+}
+private static void addPopup(Component component, final JPopupMenu popup) {
+}
 }
