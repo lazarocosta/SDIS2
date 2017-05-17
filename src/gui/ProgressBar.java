@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -10,8 +11,12 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import javax.swing.JProgressBar;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-public class ProgressBar extends JFrame {
+public class ProgressBar extends JDialog {
 
 	public static ProgressBar frame;
 	
@@ -22,6 +27,12 @@ public class ProgressBar extends JFrame {
 	 */
 	public ProgressBar() {
 		super();
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				Login.frame.setEnabled(true);
+			}
+		});
 		initialize();
 	}
 
@@ -51,9 +62,17 @@ public class ProgressBar extends JFrame {
 		this.getContentPane().add(status_lbl, "2, 2");
 		
 		JProgressBar progressBar = new JProgressBar();
+		progressBar.setIndeterminate(true);
 		this.getContentPane().add(progressBar, "2, 4");
 		
 		JButton cancel_btn = new JButton("Cancel");
+		cancel_btn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Login.frame.setEnabled(true);
+				ProgressBar.frame.dispose();
+			}
+		});
 		this.getContentPane().add(cancel_btn, "2, 6");
 		
 	}
