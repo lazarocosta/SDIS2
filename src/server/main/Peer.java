@@ -1,30 +1,57 @@
 package server.main;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.bitlet.weupnp.GatewayDevice;
+import org.bitlet.weupnp.GatewayDiscover;
+import org.bitlet.weupnp.PortMappingEntry;
 import org.xml.sax.SAXException;
 
+import de.uniba.wiai.lspi.chord.com.CommunicationException;
+import de.uniba.wiai.lspi.chord.com.Entry;
+import de.uniba.wiai.lspi.chord.com.Node;
+import de.uniba.wiai.lspi.chord.com.RefsAndEntries;
+import de.uniba.wiai.lspi.chord.com.local.ThreadEndpoint;
+import de.uniba.wiai.lspi.chord.com.socket.SocketEndpoint;
+import de.uniba.wiai.lspi.chord.console.command.entry.Key;
+import de.uniba.wiai.lspi.chord.data.ID;
+import de.uniba.wiai.lspi.chord.data.URL;
 import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 import server.protocol.ClientInterface;
 import utils.Utils;
 
-public class Peer {
+public class Peer{
 
-	public static String email = null;
-	public static int port = 60000;
-	public static GatewayDevice activeGW = new GatewayDevice();
-	public static Chord chord = null;//new ChordImpl();
+	public static Peer node = null;
+	private String email = null;
+	private String IPAddress = null;
+	private int port = 60000;
+	private GatewayDevice activeGW = new GatewayDevice();
+	private Chord chord = null;//new ChordImpl();
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -47,6 +74,11 @@ public class Peer {
 	public static ConcurrentHashMap<String,int[]> rdMap = new ConcurrentHashMap<String,int[]>();
 	public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
 	public static HashSet<String> deletedFiles = new HashSet<String>();
+
+	public Peer(String email, int port) {
+		this.email = email;
+		this.setPort(port);
+	}
 
 	/**
 	 * Main service starter
@@ -175,15 +207,219 @@ public class Peer {
 		System.out.println("Remote Object Name: " + remoteObject);
 	}
 
-	public static void safeClose(){
+	public void safeClose(){
 		try {
 			activeGW.deletePortMapping(port,"TCP");
 			activeGW.deletePortMapping(port,"UDP");
-			Peer.chord.leave();
+			chord.remove(new Key("AVAILABLE"), IPAddress + ":" + port);
+			chord.leave();
 		} catch (IOException | SAXException | ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public void initializeIPAddressesAndPorts(boolean localConnection) {
+
+		if(localConnection){
+
+			Enumeration<NetworkInterface> n;
+			try {
+				n = NetworkInterface.getNetworkInterfaces();
+
+				ArrayList<String> choicestmp = new ArrayList<String>();
+				for (; n.hasMoreElements();)
+				{
+					NetworkInterface e = n.nextElement();
+
+					Enumeration<InetAddress> a = e.getInetAddresses();
+					for (; a.hasMoreElements();)
+					{
+						InetAddress addr = a.nextElement();
+						if(addr instanceof Inet4Address)
+						choicestmp.add(addr.getHostAddress());
+						System.out.println("  " + addr.getHostAddress());
+					}
+				}
+
+				// Cria o JOptionPane por showMessageDialog
+				String[] choices = new String[choicestmp.size()];
+				choicestmp.toArray(choices);
+				int selected = JOptionPane.showOptionDialog(
+						null
+						, "Pergunta?"        // Mensagem
+						, "Titulo"               // Titulo
+						, JOptionPane.YES_NO_OPTION  
+						, JOptionPane.PLAIN_MESSAGE                               
+						, null // Icone. Você pode usar uma imagem se quiser, basta carrega-la e passar como referência
+						, choices // Array de strings com os valores de cada botão. Veja o exemplo abaixo **
+						, choices[0]    // Label do botão Default
+						);
+				IPAddress = choices[selected];
+			} catch (SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else{
+			//PORT FORWARDING
+			try {
+
+				System.out.println("Starting weupnp");
+
+				GatewayDiscover gatewayDiscover = new GatewayDiscover();
+				System.out.println("Looking for Gateway Devices...");
+
+				Map<InetAddress, GatewayDevice> gateways = gatewayDiscover.discover();
+
+				if (gateways.isEmpty()) {
+					System.out.println("No gateways found");
+					System.out.println("Stopping weupnp");
+					return;
+				}
+				System.out.println(gateways.size()+" gateway(s) found\n");
+
+				int counter=0;
+				for (GatewayDevice gw: gateways.values()) {
+					counter++;
+					System.out.println("Listing gateway details of device #" + counter+
+							"\n\tFriendly name: " + gw.getFriendlyName()+
+							"\n\tPresentation URL: " + gw.getPresentationURL()+
+							"\n\tModel name: " + gw.getModelName()+
+							"\n\tModel number: " + gw.getModelNumber()+
+							"\n\tLocal interface address: " + gw.getLocalAddress().getHostAddress()+"\n");
+				}
+
+				// choose the first active gateway for the tests
+				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
+				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
+
+				if (null != Peer.node.getActiveGW()) {
+					System.out.println("Using gateway: " + Peer.node.getActiveGW().getFriendlyName());
+				} else {
+					System.out.println("No active gateway device found");
+					System.out.println("Stopping weupnp");
+					return;
+				}
+
+
+				// testing PortMappingNumberOfEntries
+				Integer portMapCount = Peer.node.getActiveGW().getPortMappingNumberOfEntries();
+				System.out.println("GetPortMappingNumberOfEntries: " + (portMapCount!=null?portMapCount.toString():"(unsupported)"));
+
+				// testing getGenericPortMappingEntry
+				PortMappingEntry portMapping = new PortMappingEntry();
+				if (Peer.node.getActiveGW().getGenericPortMappingEntry(0,portMapping))
+					System.out.println("Portmapping #0 successfully retrieved ("+portMapping.getPortMappingDescription()+":"+portMapping.getExternalPort()+")");
+				else
+					System.out.println("Portmapping #0 retrival failed");
+
+				InetAddress localAddress = Peer.node.getActiveGW().getLocalAddress();
+				System.out.println("Using local address: "+ localAddress.getHostAddress());
+				String externalIPAddress = Peer.node.getActiveGW().getExternalIPAddress();
+				System.out.println("External address: "+ externalIPAddress);
+
+				System.out.println("Querying device to see if a port mapping already exists for port "+ Peer.node.getPort());
+
+				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
+					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
+					return;
+				}
+				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"UDP",portMapping)) {
+					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
+					return;
+				}
+
+				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
+
+				// test static lease duration mapping
+				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
+					System.out.println("Mapping TCP SUCCESSFUL.");
+				}
+				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
+					System.out.println("Mapping UDP SUCCESSFUL.");
+				}
+
+			} catch (IOException | SAXException | ParserConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	public void joinChordNetwork(String bootstrap){
+		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
+		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
+		URL localURL = null;
+		try {
+			localURL = new URL (protocol + "://"+IPAddress+":"+port+"/");
+		} catch (IOException e){
+			throw new RuntimeException (e);
+		}
+		if (bootstrap != null){
+			URL bootstrapURL = null;
+			try {
+				bootstrapURL = new URL (protocol + "://"+bootstrap+"/");
+			} catch (MalformedURLException e){
+				throw new RuntimeException (e);
+			}
+			chord = new ChordImpl();
+			try {
+				chord.join(localURL , bootstrapURL);
+			} catch (ServiceException e) {
+				throw new RuntimeException("Could not join DHT!", e);
+			}
+		} else {
+			chord = new ChordImpl();
+			try {
+				chord.create(localURL);
+			} catch (ServiceException e) {
+				throw new RuntimeException("Could not create DHT!", e);
+			}
+		}
+		try {
+			chord.insert(new Key("AVAILABLE"), IPAddress+":"+port);
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public GatewayDevice getActiveGW() {
+		return activeGW;
+	}
+
+	public void setActiveGW(GatewayDevice activeGW) {
+		this.activeGW = activeGW;
+	}
+
+	public Chord getChord() {
+		return chord;
+	}
+
+	public void setChord(Chord chord) {
+		this.chord = chord;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public String getIPAddress() {
+		return IPAddress;
+	}
+
+	public void setIPAddress(String iPAddress) {
+		IPAddress = iPAddress;
 	}
 
 }

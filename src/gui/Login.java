@@ -26,13 +26,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Random;
 
 public class Login extends JFrame{
-	
+
 	public static Login frame;
 
 	private JTextField email_input;
 	private JPasswordField password_input;
+	private JTextField bootstrap_input;
 
 	/**
 	 * Launch the application.
@@ -69,53 +71,62 @@ public class Login extends JFrame{
 		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
 				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
 				ColumnSpec.decode("center:default:grow"),
+				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
+				ColumnSpec.decode("center:default:grow"),
 				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-			new RowSpec[] {
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,});
+				new RowSpec[] {
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,});
 		this.getContentPane().setLayout(formLayout);
-		
+
 		JLabel title_lbl = new JLabel("P2P Cloud");
-		this.getContentPane().add(title_lbl, "2, 2");
+		this.getContentPane().add(title_lbl, "2, 2, 3, 1, center, default");
 		title_lbl.setHorizontalAlignment(SwingConstants.CENTER);
 		title_lbl.setFont(new Font("Impact", Font.PLAIN, 19));
-		
+
 		JLabel email_lbl = new JLabel("Email");
-		this.getContentPane().add(email_lbl, "2, 4");
+		this.getContentPane().add(email_lbl, "2, 4, 3, 1, center, default");
 		email_lbl.setHorizontalAlignment(SwingConstants.CENTER);
-		
+
 		email_input = new JTextField();
-		this.getContentPane().add(email_input, "2, 6");
+		this.getContentPane().add(email_input, "2, 6, 3, 1, center, default");
 		email_input.setColumns(15);
-		
+
 		JLabel password_lbl = new JLabel("Password");
-		this.getContentPane().add(password_lbl, "2, 8");
+		this.getContentPane().add(password_lbl, "2, 8, 3, 1");
 		password_lbl.setHorizontalAlignment(SwingConstants.CENTER);
-		
+
 		password_input = new JPasswordField();
-		this.getContentPane().add(password_input, "2, 10");
+		this.getContentPane().add(password_input, "2, 10, 3, 1, center, default");
 		password_input.setColumns(15);
-		
+
 		JCheckBox save_info_check = new JCheckBox("Save login details");
-		this.getContentPane().add(save_info_check, "2, 12");
-		
+		this.getContentPane().add(save_info_check, "2, 12, 3, 1, center, default");
+
+		JCheckBox local_check = new JCheckBox("Local connection");
+		getContentPane().add(local_check, "2, 18, center, default");
+
+		bootstrap_input = new JTextField();
+		bootstrap_input.setColumns(15);
+		getContentPane().add(bootstrap_input, "4, 18, center, default");
+
 		JButton login_btn = new JButton("Login");
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -129,16 +140,23 @@ public class Login extends JFrame{
 					c = MyConnection.createConnection();
 					ProgressBar.frame.setStatus("Attempt to login...");
 					if(Users.isLoginCorrect(c, email_input.getText(), password_input.getText())){
-					Peer.email = email_input.getText();
-					ProgressBar.frame.setStatus("Opening port...");
-					Utils.doPortForwarding();
-					ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
-					//Utils.joinChordNetwork();
-					Login.frame.setEnabled(true);
-					ProgressBar.frame.dispose();
-					FileManager.frame = new FileManager();
-					FileManager.frame.setVisible(true);
-					frame.dispose();
+						String email = email_input.getText();
+						Random r = new Random();
+						Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);
+						ProgressBar.frame.setStatus("Checking IP Address and Port...");
+						Peer.node.initializeIPAddressesAndPorts(local_check.isSelected());
+						ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
+						if(local_check.isSelected()){
+							Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
+						}else{
+							Peer.node.joinChordNetwork("telmo20.ddns.net:8000");
+
+						}
+						Login.frame.setEnabled(true);
+						ProgressBar.frame.dispose();
+						FileManager.frame = new FileManager();
+						FileManager.frame.setVisible(true);
+						frame.dispose();
 					}
 					Login.frame.setEnabled(true);
 					ProgressBar.frame.dispose();
@@ -150,8 +168,8 @@ public class Login extends JFrame{
 				}
 			}
 		});
-		this.getContentPane().add(login_btn, "2, 14");
-		
+		this.getContentPane().add(login_btn, "2, 14, 3, 1, center, default");
+
 		JButton register_btn = new JButton("Register new account");
 		register_btn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -161,14 +179,13 @@ public class Login extends JFrame{
 				frame.setVisible(false);
 			}
 		});
-		this.getContentPane().add(register_btn, "2, 16");
+		this.getContentPane().add(register_btn, "2, 16, 3, 1, center, default");
+
+
 		register_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
-		
-		JButton forgot_password_btn = new JButton("Forgot your password?");
-		this.getContentPane().add(forgot_password_btn, "2, 18");
 	}
 
 }

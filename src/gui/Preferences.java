@@ -86,7 +86,7 @@ public class Preferences extends JFrame{
 		confirm_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Peer.port = (int) port_input.getValue();
+				Peer.node.setPort((int) port_input.getValue());
 				FileManager.frame.setEnabled(true);
 				Preferences.frame.dispose();
 			}

@@ -42,34 +42,34 @@ public class FileManager extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				Peer.safeClose();
+				Peer.node.safeClose();
 			}
 		});
 		setTitle("P2P Cloud File Manager");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
-		
+
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
-		
+
 		JMenu file_menu = new JMenu("File");
 		menuBar.add(file_menu);
-		
+
 		JMenuItem upload_item = new JMenuItem("Upload new file");
 		file_menu.add(upload_item);
-		
+
 		JMenu popup_teste = new JMenu("Popup Teste");
 		JMenuItem popup_1 = new JMenuItem("Teste 1");
 		popup_teste.add(popup_1);
 
 		file_menu.add(popup_teste);
-		
+
 		JMenuItem exit_item = new JMenuItem("Exit");
 		file_menu.add(exit_item);
-		
+
 		JMenu options_menu = new JMenu("Options");
 		menuBar.add(options_menu);
-		
+
 		JMenuItem preferences_item = new JMenuItem("Preferences");
 		preferences_item.addMouseListener(new MouseAdapter() {
 			@Override
@@ -80,14 +80,14 @@ public class FileManager extends JFrame {
 				frame.setEnabled(false);
 			}
 		});
-		
+
 		JMenuItem change_password_item = new JMenuItem("Change password");
 		options_menu.add(change_password_item);
 		options_menu.add(preferences_item);
-		
+
 		JMenu help_menu = new JMenu("Help");
 		menuBar.add(help_menu);
-		
+
 		JMenuItem about_us_item = new JMenuItem("About us...");
 		help_menu.add(about_us_item);
 		contentPane = new JPanel();
@@ -103,41 +103,37 @@ public class FileManager extends JFrame {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				ColumnSpec.decode("default:grow"),
 				FormSpecs.RELATED_GAP_COLSPEC,},
-			new RowSpec[] {
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				FormSpecs.DEFAULT_ROWSPEC,
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				FormSpecs.DEFAULT_ROWSPEC,}));
-		
+				new RowSpec[] {
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						FormSpecs.DEFAULT_ROWSPEC,
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						FormSpecs.DEFAULT_ROWSPEC,}));
+
 		JButton btnNewButton = new JButton("New button");
 		contentPane.add(btnNewButton, "2, 2");
-		
+
 		JButton btnNewButton_1 = new JButton("New button");
 		contentPane.add(btnNewButton_1, "4, 2");
-		
+
 		JButton btnNewButton_2 = new JButton("New button");
 		contentPane.add(btnNewButton_2, "6, 2");
-		
+
 		JButton btnNewButton_3 = new JButton("New button");
 		contentPane.add(btnNewButton_3, "8, 2");
-		
+
 		JTree tree = new JTree();
 		contentPane.add(tree, "2, 4, 7, 1, fill, fill");
-		
+
 		JPanel footer = new JPanel();
 		footer.setToolTipText("");
 		footer.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		contentPane.add(footer, "1, 6, 9, 1, fill, fill");
-		try {
-			JLabel footer_lbl = new JLabel(Peer.email + " , " + Peer.activeGW.getExternalIPAddress() + ":" + Peer.port + " (CONNECTED)");
-			footer.add(footer_lbl, "2, 2, left, top");
-		} catch (IOException | SAXException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		
+		JLabel footer_lbl = new JLabel(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (CONNECTED)");
+		footer.add(footer_lbl, "2, 2, left, top");
+
 	}
 	private static void addPopup(Component component, final JPopupMenu popup) {
 	}
