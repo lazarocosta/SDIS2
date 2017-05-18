@@ -29,14 +29,29 @@ public class Files {
 		
 		ArrayList<String[]> files = new ArrayList();
 		do{
+			String file_id = rs.getString("file_id");
 			String name = rs.getString("name");
 			System.out.println(name);
-			String added_time = rs.getString("added_time");
+			String added_time = rs.getTimestamp("added_time").toString();
 			
-			String[] file = new String[]{name,added_time};
+			String[] file = new String[]{file_id,name,added_time};
 			files.add(file);
 		}while(rs.next());
 		
 		return files;
 	}
+	
+	public static boolean moveFileToDeleted(Connection c, int file_id) throws SQLException {
+		PreparedStatement preparedStatement = c.prepareStatement("DELETE FROM p2p.files WHERE file_id=?");
+		preparedStatement.setInt(1, file_id);
+
+        preparedStatement.executeUpdate();
+		
+		preparedStatement = c.prepareStatement("INSERT INTO p2p.deleted_files(file_id) VALUES (?)");
+        preparedStatement.setInt(1, file_id);
+
+        preparedStatement.executeUpdate();
+
+        return true;
+    }
 }

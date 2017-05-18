@@ -48,7 +48,7 @@ import utils.Utils;
 public class Peer{
 
 	public static Peer node = null;
-	public static Connection c;
+	public static Connection connection;
 	private String email = null;
 	private String IPAddress = null;
 	private int port = 60000;

@@ -137,9 +137,9 @@ public class Login extends JFrame{
 				ProgressBar.frame.setVisible(true);
 				ProgressBar.frame.setStatus("Connecting to database...");
 				try {
-					Peer.c = MyConnection.createConnection();
+					Peer.connection = MyConnection.createConnection();
 					ProgressBar.frame.setStatus("Attempt to login...");
-					if(Users.isLoginCorrect(Peer.c, email_input.getText(), password_input.getText())){
+					if(Users.isLoginCorrect(Peer.connection, email_input.getText(), password_input.getText())){
 						String email = email_input.getText();
 						Random r = new Random();
 						Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);
@@ -149,7 +149,7 @@ public class Login extends JFrame{
 						if(local_check.isSelected()){
 							Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
 						}else{
-							Peer.node.joinChordNetwork("telmo20.ddns.net:8000");
+							Peer.node.joinChordNetwork("188.82.186.114:8080");
 						}
 						/*Thread teste = new Thread() {
  					public void run() {

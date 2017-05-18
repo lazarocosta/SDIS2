@@ -16,11 +16,10 @@ CREATE TABLE files (
 	file_id		serial PRIMARY KEY,
 	user_id		integer REFERENCES users(user_id),
 	name		text NOT NULL,
-	added_time	timestamp DEFAULT current_date,
+	added_time	timestamp DEFAULT current_timestamp,
 	public		boolean	DEFAULT false
 );
 
-CREATE TABLE peers (
-	file_id		integer PRIMARY KEY REFERENCES files(file_id),
-	user_id		integer REFERENCES users(user_id)
+CREATE TABLE deleted_files (
+	file_id		integer PRIMARY KEY
 );
