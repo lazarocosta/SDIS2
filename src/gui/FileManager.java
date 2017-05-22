@@ -53,6 +53,7 @@ public class FileManager extends JFrame {
 
 	private JTree tree;
 	private JPopupMenu fileOptionsMenu;
+	private JLabel footer_lbl;
 
 	private int[] fileIDs;
 
@@ -135,15 +136,6 @@ public class FileManager extends JFrame {
 		JButton upload_btn = new JButton("Upload file");
 		upload_btn.addMouseListener(new  MouseAdapter(){
 			public void mouseClicked(MouseEvent arg0){
-				try {
-					Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
-					for(Serializable s : paulo){
-						System.out.println((String)s);
-					}
-				} catch (ServiceException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				JFileChooser uploadFileChooser = new JFileChooser();
 				int returnVal = uploadFileChooser.showDialog(FileManager.this, "Upload");
 			}
@@ -155,6 +147,17 @@ public class FileManager extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				tree.setModel(buildTreeModel());
+				updateFooter();
+				//DEBUG PEERS NA REDE
+				try {
+					Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+					for(Serializable s : paulo){
+						System.out.println((String)s);
+					}
+				} catch (ServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 		contentPane.add(refresh_btn, "4, 2, fill, default");
@@ -185,6 +188,7 @@ public class FileManager extends JFrame {
 		fileOptionsMenu.add(deleteMenuItem);
 
 		tree = new JTree();
+		tree.setRootVisible(false);
 		tree.setModel(buildTreeModel());
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
@@ -206,13 +210,22 @@ public class FileManager extends JFrame {
 		footer.setToolTipText("");
 		footer.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		contentPane.add(footer, "1, 6, 9, 1, fill, fill");
-
-		JLabel footer_lbl = new JLabel(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (CONNECTED)");
+		
+		footer_lbl = new JLabel();
+		updateFooter();
 		footer.add(footer_lbl, "2, 2, left, top");
 
 	}
-	private static void addPopup(Component component, final JPopupMenu popup) {
+	
+	private void updateFooter(){
+		try {
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
+		} catch (ServiceException e1) {
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort());
+			e1.printStackTrace();
+		}
 	}
+	
 
 	private DefaultTreeModel buildTreeModel(){
 		DefaultTreeModel dtm = new DefaultTreeModel(

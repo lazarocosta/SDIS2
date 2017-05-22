@@ -13,13 +13,15 @@ import com.jgoodies.forms.layout.RowSpec;
 import javax.swing.JProgressBar;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class ProgressBar extends JDialog {
 
 	public static ProgressBar frame;
-	
+
 	private JLabel status_lbl;
 
 	/**
@@ -42,29 +44,31 @@ public class ProgressBar extends JDialog {
 	private void initialize() {
 		this.setTitle("P2P Cloud");
 		this.setResizable(false);
-		this.setBounds(100, 100, 450, 300);
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		this.setSize(dim.width/3,dim.height/3);
+		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
 				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
 				ColumnSpec.decode("center:default:grow"),
 				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-			new RowSpec[] {
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,});
+				new RowSpec[] {
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,});
 		this.getContentPane().setLayout(formLayout);
-		
+
 		status_lbl = new JLabel("Status");
 		this.getContentPane().add(status_lbl, "2, 2");
-		
+
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		this.getContentPane().add(progressBar, "2, 4");
-		
+
 		JButton cancel_btn = new JButton("Cancel");
 		cancel_btn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -74,9 +78,9 @@ public class ProgressBar extends JDialog {
 			}
 		});
 		this.getContentPane().add(cancel_btn, "2, 6");
-		
+
 	}
-	
+
 	public void setStatus(String status){
 		this.status_lbl.setText(status);
 	}

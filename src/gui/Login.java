@@ -1,11 +1,14 @@
 package gui;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import java.awt.Font;
+import java.awt.Toolkit;
+
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -24,6 +27,8 @@ import utils.Utils;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Random;
@@ -66,7 +71,9 @@ public class Login extends JFrame{
 	private void initialize() {
 		this.setTitle("P2P Cloud Login");
 		this.setResizable(false);
-		this.setBounds(100, 100, 450, 300);
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		this.setSize(dim.width/3,dim.height/2);
+		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
 				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
@@ -132,10 +139,10 @@ public class Login extends JFrame{
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				//LOGIN PROCEDURE
-				Login.frame.setEnabled(false);
 				ProgressBar.frame = new ProgressBar();
 				ProgressBar.frame.setVisible(true);
 				ProgressBar.frame.setStatus("Connecting to database...");
+				Login.frame.setEnabled(false);
 				Thread t = new Thread(){
 					public void run() {
 						try {
@@ -147,37 +154,36 @@ public class Login extends JFrame{
 								Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
-								Peer.node.initializeIPAddressesAndPorts(local_check.isSelected());
+								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
 
-								ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
-								if(local_check.isSelected()){
-									Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
-								}else{
-									Peer.node.joinChordNetwork("telmo20.ddns.net:8080");
+									ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
+									if(local_check.isSelected()){
+										Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
+									}else{
+										Peer.node.joinChordNetwork("telmo20.ddns.net:8080");
+									}
+
+									ProgressBar.frame.setStatus("Initializing file system...");
+									Peer.node.initialize();
+
+									ProgressBar.frame.setStatus("Updating data folder...");
+									Peer.node.updateFileSystem();
+
+									ProgressBar.frame.setStatus("Announcing my chunks...");
+									Peer.node.insertMyFiles();
+
+									ProgressBar.frame.setStatus("Login successful!");
+
+									closeProgressBarAndResumeLogin();
+									FileManager.frame = new FileManager();
+									FileManager.frame.setVisible(true);
+									frame.dispose();
 								}
-
-								ProgressBar.frame.setStatus("Initializing file system...");
-								Peer.node.initialize();
-
-								ProgressBar.frame.setStatus("Updating data folder...");
-								Peer.node.updateFileSystem();
-
-								ProgressBar.frame.setStatus("Announcing my chunks...");
-								Peer.node.insertMyFiles();
-
-								ProgressBar.frame.setStatus("Login successful!");
-								Login.frame.setEnabled(true);
-								ProgressBar.frame.dispose();
-								FileManager.frame = new FileManager();
-								FileManager.frame.setVisible(true);
-								frame.dispose();
 							}
-							Login.frame.setEnabled(true);
-							ProgressBar.frame.dispose();
+							closeProgressBarAndResumeLogin();
 						} catch (SQLException | ClassNotFoundException e1) {
 							// TODO Auto-generated catch block
-							Login.frame.setEnabled(true);
-							ProgressBar.frame.dispose();
+							closeProgressBarAndResumeLogin();
 							e1.printStackTrace();
 						}
 					}
@@ -203,6 +209,11 @@ public class Login extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
+	}
+
+	private void closeProgressBarAndResumeLogin(){
+		Login.frame.setEnabled(true);
+		ProgressBar.frame.dispose();
 	}
 
 }

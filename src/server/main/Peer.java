@@ -7,23 +7,14 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -33,19 +24,11 @@ import org.bitlet.weupnp.PortMappingEntry;
 import org.xml.sax.SAXException;
 
 import database.Files;
-import de.uniba.wiai.lspi.chord.com.CommunicationException;
-import de.uniba.wiai.lspi.chord.com.Entry;
-import de.uniba.wiai.lspi.chord.com.Node;
-import de.uniba.wiai.lspi.chord.com.RefsAndEntries;
-import de.uniba.wiai.lspi.chord.com.local.ThreadEndpoint;
-import de.uniba.wiai.lspi.chord.com.socket.SocketEndpoint;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
-import de.uniba.wiai.lspi.chord.data.ID;
 import de.uniba.wiai.lspi.chord.data.URL;
 import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
-import server.protocol.ClientInterface;
 import utils.Utils;
 
 public class Peer{
@@ -53,10 +36,13 @@ public class Peer{
 	public static Peer node = null;
 	public static Connection connection;
 	private String email = null;
+	private boolean local_connection = false;
 	private String IPAddress = null;
 	private int port = 60000;
 	private GatewayDevice activeGW = new GatewayDevice();
 	private ChordImpl chord = null;//new ChordImpl();
+	private Listener listener;
+	private Thread listenerThread;
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -94,9 +80,9 @@ public class Peer{
 
 		System.out.println("Starting services...");
 
-		//Listener listener = new Listener();
+		listener = new Listener();
 
-		//Thread listenerThread = new Thread(listener);
+		listenerThread = new Thread(listener);
 		/*try {
 			// Bind the remote object's stub in the registry
 			ClientAppListener clientAppListener = new ClientAppListener();
@@ -115,7 +101,7 @@ public class Peer{
 			rdCheckerThread.start();
 		}
 
-		//listenerThread.start();
+		listenerThread.start();
 
 		System.out.println("Services running...");
 
@@ -128,19 +114,23 @@ public class Peer{
 
 	public void safeClose(){
 		try {
-			activeGW.deletePortMapping(port,"TCP");
-			activeGW.deletePortMapping(port,"UDP");
+			listenerThread.interrupt();
 			chord.remove(new Key("AVAILABLE"), IPAddress + ":" + port);
 			chord.leave();
+			if(!local_connection){
+				activeGW.deletePortMapping(port,"TCP");
+				activeGW.deletePortMapping(port,"UDP");
+			}
 		} catch (IOException | SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 
-	public void initializeIPAddressesAndPorts(boolean localConnection) {
+	public boolean initializeIPAddressesAndPorts(boolean localConnection) {
+		local_connection = localConnection;
 
+		//LOCAL CONNECTION
 		if(localConnection){
 
 			Enumeration<NetworkInterface> n;
@@ -162,23 +152,27 @@ public class Peer{
 					}
 				}
 
-				// Cria o JOptionPane por showMessageDialog
+				// JOpitonPane
 				String[] choices = new String[choicestmp.size()];
 				choicestmp.toArray(choices);
-				int selected = JOptionPane.showOptionDialog(
+				Object selected = JOptionPane.showInputDialog(
 						null
-						, "Pergunta?"        // Mensagem
-						, "Titulo"               // Titulo
-						, JOptionPane.YES_NO_OPTION  
+						, "Which network interface do you want to use?"       	 // Message
+						, "Network Interface" 									// Title
 						, JOptionPane.PLAIN_MESSAGE                               
-						, null // Icone. Você pode usar uma imagem se quiser, basta carrega-la e passar como referência
-						, choices // Array de strings com os valores de cada botão. Veja o exemplo abaixo **
-						, choices[0]    // Label do botão Default
+						, null 													// Icon
+						, choices // Array of options
+						, choices[0]    // Default option
 						);
-				IPAddress = choices[selected];
+				if(selected != null){
+					IPAddress = (String) selected;
+					return true;
+				}else{
+					return false;
+				}
 			} catch (SocketException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return false;
 			}
 		}else{
 			//PORT FORWARDING
@@ -194,7 +188,7 @@ public class Peer{
 				if (gateways.isEmpty()) {
 					System.out.println("No gateways found");
 					System.out.println("Stopping weupnp");
-					return;
+					return false;
 				}
 				System.out.println(gateways.size()+" gateway(s) found\n");
 
@@ -218,7 +212,7 @@ public class Peer{
 				} else {
 					System.out.println("No active gateway device found");
 					System.out.println("Stopping weupnp");
-					return;
+					return false;
 				}
 
 
@@ -242,11 +236,11 @@ public class Peer{
 
 				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
 					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return;
+					return false;
 				}
 				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"UDP",portMapping)) {
 					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return;
+					return false;
 				}
 
 				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
@@ -258,10 +252,10 @@ public class Peer{
 				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
 					System.out.println("Mapping UDP SUCCESSFUL.");
 				}
-
+				return true;
 			} catch (IOException | SAXException | ParserConfigurationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return false;
 			}
 		}
 
@@ -321,20 +315,20 @@ public class Peer{
 					if(deletedFiles.contains(Integer.parseInt(fileID))){
 						File fileDir = new File(dataPath + Utils.FS + fileID);
 						for (File c : fileDir.listFiles())
-			                try {
-			                    //Delete files inside directory
-			                    Peer.usedCapacity -= c.length();
-			                    java.nio.file.Files.delete(c.toPath());
-			                } catch (IOException e) {
-			                    e.printStackTrace();
-			                }
-			            try {
-			                //Delete directory when it is empty
-			            	java.nio.file.Files.delete(fileDir.toPath());
-			            } catch (IOException e) {
-			                // TODO Auto-generated catch block
-			                e.printStackTrace();
-			            }
+							try {
+								//Delete files inside directory
+								Peer.usedCapacity -= c.length();
+								java.nio.file.Files.delete(c.toPath());
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						try {
+							//Delete directory when it is empty
+							java.nio.file.Files.delete(fileDir.toPath());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 			}
