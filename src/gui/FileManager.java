@@ -162,8 +162,16 @@ public class FileManager extends JFrame {
 		JButton btnNewButton_2 = new JButton("New button");
 		contentPane.add(btnNewButton_2, "6, 2, fill, default");
 
-		JButton btnNewButton_3 = new JButton("New button");
-		contentPane.add(btnNewButton_3, "8, 2, fill, default");
+		JButton public_files_btn = new JButton("Public files");
+		public_files_btn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				PublicFiles.frame = new PublicFiles();
+				PublicFiles.frame.setVisible(true);
+				FileManager.frame.setEnabled(false);
+			}
+		});
+		contentPane.add(public_files_btn, "8, 2, fill, default");
 
 		fileOptionsMenu = new JPopupMenu();
 		ActionListener actionListener = new PopupActionListener();

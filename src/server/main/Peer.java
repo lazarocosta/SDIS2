@@ -14,6 +14,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import org.bitlet.weupnp.GatewayDiscover;
 import org.bitlet.weupnp.PortMappingEntry;
 import org.xml.sax.SAXException;
 
+import database.Files;
 import de.uniba.wiai.lspi.chord.com.CommunicationException;
 import de.uniba.wiai.lspi.chord.com.Entry;
 import de.uniba.wiai.lspi.chord.com.Node;
@@ -83,132 +85,6 @@ public class Peer{
 		this.setPort(port);
 	}
 
-	/**
-	 * Main service starter
-	 * @param args Server arguments by the following order:
-	 * 1 - Protocol Version
-	 * 2 - Server ID
-	 * 3 - RMI Remote Object name
-	 * 4 - MC Address
-	 * 5 - MC Port
-	 * 6 - MDB Address
-	 * 7 - MDB Port
-	 * 8 - MDR Address
-	 * 9 - MDR Port
-	 */
-	public static void main(String[] args) {
-		if(args.length != 9){
-			System.out.println("Usage: Peer <Protocol Version> <Server ID> <RMI Remote Object Name> <MC Address> <MC Port> <MDB Address> <MDB Port> <MDR Address> <MDR Port>");
-			return;
-		}
-
-		protocolVersion = args[0];
-		if(protocolVersion == null){
-			System.out.println("Null protocol version");
-		}
-
-		serverID = args[1];
-		if (serverID == null){
-			System.out.println("Server ID wrong!");
-			return;
-		}
-
-		remoteObject = args[2];
-		if (remoteObject == null){
-			System.out.println("Remote Object Name wrong!");
-			return;
-		}
-
-		mcAddress = args[3];
-		if (mcAddress == null){
-			System.out.println("MC Address wrong!");
-			return;
-		}
-
-		mcPort = Integer.parseInt(args[4]);
-		if (mcPort < 1024){
-			System.out.println("MC Port wrong!");
-			return;
-		}
-		mdbAddress = args[5];
-		if (mdbAddress == null){
-			System.out.println("MDB Address wrong!");
-			return;
-		}
-
-		mdbPort = Integer.parseInt(args[6]);
-		if (mdbPort < 1024){
-			System.out.println("MDB Port wrong!");
-			return;
-		}
-
-		mdrAddress = args[7];
-		if (mdrAddress == null){
-			System.out.println("MDR Address wrong!");
-			return;
-		}
-
-		mdrPort = Integer.parseInt(args[8]);
-		if (mdrPort < 1024){
-			System.out.println("MDR Port wrong!");
-			return;
-		}
-
-		path = "." + Utils.FS + serverID;
-		dataPath = path + Utils.FS + "data";
-		rdFile = path + Utils.FS + "rd";
-		mdFile = path + Utils.FS + "md";
-
-		System.out.println("Loading resources...");
-		Utils.initFileSystem();
-		Utils.loadRD();
-		Utils.loadMD();
-		usedCapacity = Utils.getusedCapacity();
-		//CheckState cs = new CheckState();
-		//System.out.println(cs.getState());
-
-		System.out.println("Starting services...");
-
-		MCListener mcListener = new MCListener();
-		MDBListener mdbListener = new MDBListener();
-		RDwriter rdWriter = new RDwriter();
-
-		Thread mcThread = new Thread(mcListener);
-		Thread mdbThread = new Thread(mdbListener);
-		Thread rdWriterThread = new Thread(rdWriter);
-		try {
-			// Bind the remote object's stub in the registry
-			ClientAppListener clientAppListener = new ClientAppListener();
-
-			ClientInterface stub = (ClientInterface) UnicastRemoteObject.exportObject(clientAppListener, 0);
-			Registry registry = LocateRegistry.getRegistry();
-			registry.bind(remoteObject, stub);
-		} catch (RemoteException | AlreadyBoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if(protocolVersion.equals("2.0")){
-			RDChecker rdChecker = new RDChecker();
-			Thread rdCheckerThread = new Thread(rdChecker);
-			rdCheckerThread.start();
-		}
-
-		mcThread.start();
-		mdbThread.start();
-		rdWriterThread.start();
-
-		System.out.println("Services running...");
-
-		System.out.println("Running configurations:");
-		System.out.println("Server ID: " + serverID);
-		System.out.println("MC Multicast Channel: " + mcAddress + ":" + mcPort);
-		System.out.println("MDB Multicast Channel: " + mdbAddress + ":" + mdbPort);
-		System.out.println("MDR Multicast Channel: " + mdrAddress + ":" + mdrPort);
-		System.out.println("Data Path: " + dataPath);
-		System.out.println("Max capacity: " + 0);
-		System.out.println("Remote Object Name: " + remoteObject);
-	}
 
 	public void initialize(){		
 		path = "." + Utils.FS + serverID;
@@ -221,7 +97,7 @@ public class Peer{
 		//Listener listener = new Listener();
 
 		//Thread listenerThread = new Thread(listener);
-		try {
+		/*try {
 			// Bind the remote object's stub in the registry
 			ClientAppListener clientAppListener = new ClientAppListener();
 
@@ -231,7 +107,7 @@ public class Peer{
 		} catch (RemoteException | AlreadyBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
 		if(protocolVersion.equals("2.0")){
 			RDChecker rdChecker = new RDChecker();
@@ -429,29 +305,56 @@ public class Peer{
 			}
 		}
 	}
-	
+
 	/**
 	 * Removes deleted files (obtained from db) from file system
 	 */
 	public void updateFileSystem(){
-		 File dir = new File(Peer.dataPath);
-	        String[] fileIds = dir.list();
-	        for (String file : fileIds) {
-	        	
-	        }
-	        
+		File dir = new File(dataPath);
+
+		String[] fileIDs = dir.list();
+		HashSet<Integer> deletedFiles;
+		try {
+			deletedFiles = Files.getDeletedFiles(connection);
+			if(deletedFiles.size() > 0){
+				for (String fileID : fileIDs) {
+					if(deletedFiles.contains(Integer.parseInt(fileID))){
+						File fileDir = new File(dataPath + Utils.FS + fileID);
+						for (File c : fileDir.listFiles())
+			                try {
+			                    //Delete files inside directory
+			                    Peer.usedCapacity -= c.length();
+			                    java.nio.file.Files.delete(c.toPath());
+			                } catch (IOException e) {
+			                    e.printStackTrace();
+			                }
+			            try {
+			                //Delete directory when it is empty
+			            	java.nio.file.Files.delete(fileDir.toPath());
+			            } catch (IOException e) {
+			                // TODO Auto-generated catch block
+			                e.printStackTrace();
+			            }
+					}
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	
+
 	/**
 	 * Announce in chord network files with at least one chunk in its system
 	 */
 	public void insertMyFiles(){
-		 File dir = new File(Peer.dataPath);
-	        String[] fileIDs = dir.list();
-	        for (String fileID : fileIDs) {
-	        	chord.insert(new Key("fileID"), IPAddress+":"+port);
-	        }
-	        
+		File dir = new File(dataPath);
+		String[] fileIDs = dir.list();
+		for (String fileID : fileIDs) {
+			System.out.println(fileID);
+			chord.insertAsync(new Key(fileID), IPAddress+":"+port);
+		}
+
 	}
 
 
