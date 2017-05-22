@@ -1,5 +1,6 @@
 package server.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -390,6 +391,11 @@ public class Peer{
 
 	}
 
+	/**
+	 * Joins or create a new chord network
+	 * Announces it availability by inserting AVALABLE key
+	 * @param bootstrap URL of existing network, null to create a new network
+	 */
 	public void joinChordNetwork(String bootstrap){
 		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
@@ -409,7 +415,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.join(localURL , bootstrapURL);
-				chord.insert(new Key("AVAILABLE"), IPAddress+":"+port);
+				chord.insertAsync(new Key("AVAILABLE"), IPAddress+":"+port);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not join DHT!", e);
 			}
@@ -422,6 +428,30 @@ public class Peer{
 				throw new RuntimeException("Could not create DHT!", e);
 			}
 		}
+	}
+	
+	/**
+	 * Removes deleted files (obtained from db) from file system
+	 */
+	public void updateFileSystem(){
+		 File dir = new File(Peer.dataPath);
+	        String[] fileIds = dir.list();
+	        for (String file : fileIds) {
+	        	
+	        }
+	        
+	}
+	
+	/**
+	 * Announce in chord network files with at least one chunk in its system
+	 */
+	public void insertMyFiles(){
+		 File dir = new File(Peer.dataPath);
+	        String[] fileIDs = dir.list();
+	        for (String fileID : fileIDs) {
+	        	chord.insert(new Key("fileID"), IPAddress+":"+port);
+	        }
+	        
 	}
 
 

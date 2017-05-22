@@ -131,6 +131,7 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				//LOGIN PROCEDURE
 				Connection c;
 				Login.frame.setEnabled(false);
 				ProgressBar.frame = new ProgressBar();
@@ -149,8 +150,13 @@ public class Login extends JFrame{
 						if(local_check.isSelected()){
 							Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
 						}else{
-							Peer.node.joinChordNetwork("188.82.186.114:8080");
+							Peer.node.joinChordNetwork("telmo20.ddns.net:8080");
 						}
+						ProgressBar.frame.setStatus("Updating data folder...");
+						Peer.node.updateFileSystem();
+						ProgressBar.frame.setStatus("Announcing my chunks...");
+						Peer.node.insertMyFiles();
+						ProgressBar.frame.setStatus("Login successful!");
 						/*Thread teste = new Thread() {
  					public void run() {
  						try {
