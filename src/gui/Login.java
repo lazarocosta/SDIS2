@@ -155,6 +155,13 @@ public class Login extends JFrame{
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
 								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
+									ProgressBar.frame.setStatus("Initializing UDP listening...");
+									Peer.node.startListening();
+
+									if(!Peer.node.is_port_forwarded()){
+										ProgressBar.frame.setStatus("Holepunching NAT...");
+										Peer.node.startListening();
+									}
 
 									ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
 									if(local_check.isSelected()){

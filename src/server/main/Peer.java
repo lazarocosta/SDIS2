@@ -2,17 +2,22 @@ package server.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JOptionPane;
@@ -38,6 +43,8 @@ public class Peer{
 	public static Connection connection;
 	private String email = null;
 	private boolean local_connection = false;
+	private DatagramSocket udpSocket;
+	private boolean port_forwarded = false;
 	private String IPAddress = null;
 	private int port = 60000;
 	private GatewayDevice activeGW = new GatewayDevice();
@@ -114,9 +121,14 @@ public class Peer{
 		System.out.println("Remote Object Name: " + remoteObject);
 	}
 
+	public void startListening(){
+
+	}
+
 	public void safeClose(){
 		try {
 			listenerThread.interrupt();
+			udpSocket.close();
 			chord.remove(new Key("AVAILABLE"), simpleURL);
 			chord.leave();
 			if(!local_connection){
@@ -169,6 +181,7 @@ public class Peer{
 				if(selected != null){
 					IPAddress = (String) selected;
 					simpleURL = new SimpleURL(IPAddress, port);
+					udpSocket = new DatagramSocket(port);
 					return true;
 				}else{
 					return false;
@@ -210,6 +223,7 @@ public class Peer{
 				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
 				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
 				simpleURL = new SimpleURL(IPAddress, port);
+				udpSocket = new DatagramSocket(port);
 
 				if (null != Peer.node.getActiveGW()) {
 					System.out.println("Using gateway: " + Peer.node.getActiveGW().getFriendlyName());
@@ -250,11 +264,13 @@ public class Peer{
 				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
 
 				// test static lease duration mapping
-				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
-					System.out.println("Mapping TCP SUCCESSFUL.");
-				}
 				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
 					System.out.println("Mapping UDP SUCCESSFUL.");
+
+					if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
+						System.out.println("Mapping TCP SUCCESSFUL.");
+						port_forwarded = true;
+					}
 				}
 				return true;
 			} catch (IOException | SAXException | ParserConfigurationException e) {
@@ -355,6 +371,32 @@ public class Peer{
 
 	}
 
+	/**
+	 * Opens a hole in NAT to be able to receive udp messages from available peers in chord network
+	 * @return
+	 */
+	public void udpHolePunch(){
+		try {
+			Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			byte[] b2 = "Hello".getBytes();
+			byte[] b1 = new byte[6];
+			System.arraycopy(b2, 0, b1, 0, b2.length);
+
+			for(Serializable s : paulo){
+				DatagramPacket packet;
+				try {
+					packet = new DatagramPacket(b1, b1.length, InetAddress.getByName(((SimpleURL)s).getIpAddress()), ((SimpleURL)s).getPort());
+					udpSocket.send(packet);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (ServiceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 
 	public int getPort() {
 		return port;
@@ -390,6 +432,16 @@ public class Peer{
 
 	public void setIPAddress(String iPAddress) {
 		IPAddress = iPAddress;
+	}
+
+
+	public DatagramSocket getUDPSocket() {
+		return udpSocket;
+	}
+
+
+	public boolean is_port_forwarded() {
+		return port_forwarded;
 	}
 
 }
