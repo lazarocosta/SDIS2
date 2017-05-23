@@ -35,6 +35,7 @@ public class Listener implements Runnable {
 								Integer.parseInt(cmdSplit[4])
 								)).start();
 					} else if (cmdSplit[0].equals("DELETE")) {
+						System.out.println("RECEBI DELETE!!!!");
 						new Thread(new Delete(
 								cmdSplit[2],
 								cmdSplit[3]

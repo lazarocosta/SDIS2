@@ -146,18 +146,7 @@ public class FileManager extends JFrame {
 		refresh_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				tree.setModel(buildTreeModel());
-				updateFooter();
-				//DEBUG PEERS NA REDE
-				try {
-					Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
-					for(Serializable s : paulo){
-						System.out.println((String)s);
-					}
-				} catch (ServiceException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				refresh();
 			}
 		});
 		contentPane.add(refresh_btn, "4, 2, fill, default");
@@ -199,8 +188,7 @@ public class FileManager extends JFrame {
 					int row = tree.getClosestRowForLocation(e.getX(), e.getY());
 					tree.setSelectionRow(row);
 					System.out.println(tree.getLeadSelectionRow());
-					if(tree.getLeadSelectionRow() > 0)
-						fileOptionsMenu.show(e.getComponent(), e.getX(), e.getY());
+					fileOptionsMenu.show(e.getComponent(), e.getX(), e.getY());
 				}
 			}
 		});
@@ -210,13 +198,28 @@ public class FileManager extends JFrame {
 		footer.setToolTipText("");
 		footer.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		contentPane.add(footer, "1, 6, 9, 1, fill, fill");
-		
+
 		footer_lbl = new JLabel();
 		updateFooter();
 		footer.add(footer_lbl, "2, 2, left, top");
 
 	}
-	
+
+	protected void refresh() {
+		tree.setModel(buildTreeModel());
+		updateFooter();
+		//DEBUG PEERS NA REDE
+		try {
+			Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			for(Serializable s : paulo){
+				System.out.println(s.toString());
+			}
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private void updateFooter(){
 		try {
 			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
@@ -225,10 +228,11 @@ public class FileManager extends JFrame {
 			e1.printStackTrace();
 		}
 	}
-	
+
 
 	private DefaultTreeModel buildTreeModel(){
-		DefaultTreeModel dtm = new DefaultTreeModel(
+		DefaultTreeModel dtm;
+		dtm = new DefaultTreeModel(
 				new DefaultMutableTreeNode("Files") {
 					{
 						try{
@@ -239,9 +243,8 @@ public class FileManager extends JFrame {
 								fileIDs[i] = Integer.parseInt(files.get(i)[0]); 
 							}
 
-						} catch (SQLException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+						} catch (SQLException e) {
+							e.printStackTrace();
 						}
 					}
 				}
@@ -252,7 +255,7 @@ public class FileManager extends JFrame {
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
 			if(actionEvent.getActionCommand().equals("Delete")){
-				int fileID = fileIDs[tree.getLeadSelectionRow()-1];
+				int fileID = fileIDs[tree.getLeadSelectionRow()];
 				try {
 					Files.moveFileToDeleted(Peer.connection, fileID);
 
@@ -261,7 +264,7 @@ public class FileManager extends JFrame {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				buildTreeModel();
+				refresh();
 
 
 			}else if(actionEvent.getActionCommand().equals("Restore")){

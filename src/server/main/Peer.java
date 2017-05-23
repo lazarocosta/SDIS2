@@ -29,6 +29,7 @@ import de.uniba.wiai.lspi.chord.data.URL;
 import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
+import utils.SimpleURL;
 import utils.Utils;
 
 public class Peer{
@@ -43,6 +44,7 @@ public class Peer{
 	private ChordImpl chord = null;//new ChordImpl();
 	private Listener listener;
 	private Thread listenerThread;
+	private SimpleURL simpleURL;
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -115,7 +117,7 @@ public class Peer{
 	public void safeClose(){
 		try {
 			listenerThread.interrupt();
-			chord.remove(new Key("AVAILABLE"), IPAddress + ":" + port);
+			chord.remove(new Key("AVAILABLE"), simpleURL);
 			chord.leave();
 			if(!local_connection){
 				activeGW.deletePortMapping(port,"TCP");
@@ -166,6 +168,7 @@ public class Peer{
 						);
 				if(selected != null){
 					IPAddress = (String) selected;
+					simpleURL = new SimpleURL(IPAddress, port);
 					return true;
 				}else{
 					return false;
@@ -206,6 +209,7 @@ public class Peer{
 				// choose the first active gateway for the tests
 				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
 				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
+				simpleURL = new SimpleURL(IPAddress, port);
 
 				if (null != Peer.node.getActiveGW()) {
 					System.out.println("Using gateway: " + Peer.node.getActiveGW().getFriendlyName());
@@ -271,7 +275,7 @@ public class Peer{
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
 		try {
-			localURL = new URL (protocol + "://"+IPAddress+":"+port+"/");
+			localURL = new URL (protocol + "://"+simpleURL.toString()+"/");
 		} catch (IOException e){
 			throw new RuntimeException (e);
 		}
@@ -285,7 +289,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.join(localURL , bootstrapURL);
-				chord.insertAsync(new Key("AVAILABLE"), IPAddress+":"+port);
+				chord.insertAsync(new Key("AVAILABLE"), simpleURL);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not join DHT!", e);
 			}
@@ -293,7 +297,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.create(localURL);
-				chord.insertAsync(new Key("AVAILABLE"), IPAddress+":"+port);
+				chord.insertAsync(new Key("AVAILABLE"), simpleURL);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not create DHT!", e);
 			}
@@ -346,7 +350,7 @@ public class Peer{
 		String[] fileIDs = dir.list();
 		for (String fileID : fileIDs) {
 			System.out.println(fileID);
-			chord.insertAsync(new Key(fileID), IPAddress+":"+port);
+			chord.insertAsync(new Key(fileID), simpleURL);
 		}
 
 	}

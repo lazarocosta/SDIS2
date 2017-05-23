@@ -1,0 +1,1 @@
+nohup java -jar CreateDHT.jar telmo20.ddns.net:8080 &

@@ -5,11 +5,13 @@ import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.Set;
 
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
+import utils.SimpleURL;
 import utils.Utils;
 
 public class Delete implements Runnable {
@@ -27,26 +29,32 @@ public class Delete implements Runnable {
 		try {
 			Set<Serializable> peersWFile = Peer.node.getChord().retrieve(new Key(this.fileID));
 			for(Serializable peer : peersWFile){
-				System.out.println(peer);
+				System.out.println(peer.toString());
 			}
-			//for(Serializable peer : peersWFile){
-				DatagramSocket clientSocket = new DatagramSocket();
-				InetAddress IPAddress = InetAddress.getByName(Peer.mcAddress);
-				byte[] sendData = new String(
-						"DELETE" + Utils.Space +
-						protocolVersion + Utils.Space +
-						Peer.serverID + Utils.Space +
-						this.fileID + Utils.Space +
-						Utils.CRLF + Utils.CRLF)
-						.getBytes();
-				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, Peer.mcPort);
-				clientSocket.send(sendPacket);
-				clientSocket.close();
+			for(Serializable peer : peersWFile){
+				DatagramSocket clientSocket;
+				try {
+					clientSocket = new DatagramSocket();
+					InetAddress IPAddress = InetAddress.getByName(((SimpleURL)peer).getIpAddress());
+					byte[] sendData = new String(
+							"DELETE" + Utils.Space +
+							protocolVersion + Utils.Space +
+							Peer.serverID + Utils.Space +
+							this.fileID + Utils.Space +
+							Utils.CRLF + Utils.CRLF)
+							.getBytes();
+					DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, ((SimpleURL)peer).getPort());
+					clientSocket.send(sendPacket);
+					clientSocket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				if (this.protocolVersion.equals("2.0")) {
 					Peer.deletedFiles.add(this.fileID);
 				}
-			//}
-		} catch (IOException | ServiceException e) {
+			}
+		} catch (ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
