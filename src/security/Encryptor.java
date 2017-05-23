@@ -137,6 +137,10 @@ public class Encryptor {
 
             System.out.println(new String(decryptAES(secretKeySpec, initVector, encrypted)));
 
+            byte[] rsaEncrypted = encryptRSA(keyPair.getPublic(), secretKeySpec.getEncoded());
+
+            System.out.println(Arrays.toString(decryptRSA(keyPair.getPrivate(), rsaEncrypted)));
+
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException e) {
             e.printStackTrace();
         }
