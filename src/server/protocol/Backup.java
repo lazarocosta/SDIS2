@@ -88,7 +88,7 @@ public class Backup {
 					//System.out.println("FROM SERVER: " + modifiedSentence);
 				}
 
-                int sizeEncrypted = (numbytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
+                int sizeEncrypted = (numBytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
 
 
                 byte[] chunkEncrypted = new byte[sizeEncrypted];
@@ -122,10 +122,10 @@ public class Backup {
 		ArrayList<Socket> result = new ArrayList<Socket>();
 
 		try {
-			byte[] availableMsg = new String("AVAILABLE?" + Utils.Space
+			byte[] availableMsg = new String("PUTCHUNK?" + Utils.Space
 					+ "1.0" + Utils.Space
 					+ fileID + Utils.Space
-					+ Peer.node.getSimpleURL().toString()
+					+ Peer.node.getSimpleURL().toString() + Utils.Space
 					+ Utils.CRLF + Utils.CRLF).getBytes();
 
 			Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
@@ -138,7 +138,7 @@ public class Backup {
 						while(true){
 							Socket tmpConnection = ss.accept();
 							result.add(tmpConnection);
-							System.out.println("ACEITEI CONEX�O TCP DE:" + tmpConnection.getRemoteSocketAddress());
+							System.out.println("ACEITEI CONEXAO TCP DE:" + tmpConnection.getRemoteSocketAddress());
 						}
 					} catch (IOException e) {
 						e.printStackTrace();

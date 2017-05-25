@@ -1,6 +1,7 @@
 package server.protocol;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,6 +15,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
@@ -29,6 +33,35 @@ public class Restore {
 		int chunkNumber = 0;
 		//TODO ver se o proprio peer nao tem nenhum chunk
 		ArrayList<Socket> availableConnections = getAvailablePeers(fileID);
+
+		for(Socket s:availableConnections){
+			DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
+			outToServer.writeBytes(new String("GETCHUNKS" + Utils.Space
+					+ protocolVersion + Utils.Space
+					+ fileID + Utils.Space
+					+ Utils.CRLF));
+		}
+		
+		HashMap<Socket, List<Integer>> availableChunks = new HashMap<Socket, List<Integer>>();
+		
+		for(Socket s:availableConnections){
+			new Thread(){
+				public void run() {
+					try {
+						while(true){
+							DataInputStream dis = new DataInputStream(s.getInputStream());
+							String header = dis.readLine();
+							System.out.println("Received: " + header);
+							List<Integer> chunks = Arrays.asList(Arrays.stream(new String(header).split("\\s+")).mapToInt(Integer::parseInt).toArray());
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}.start();
+		}
+		
+		Thread.sleep(5000);
 
 		try {
 			InputStream in = new FileInputStream(f);
@@ -94,10 +127,10 @@ public class Restore {
 		ArrayList<Socket> result = new ArrayList<Socket>();
 
 		try {
-			byte[] availableMsg = new String("AVAILABLE?" + Utils.Space
+			byte[] availableMsg = new String("GETCHUNK?" + Utils.Space
 					+ "1.0" + Utils.Space
 					+ fileID + Utils.Space
-					+ Peer.node.getSimpleURL().toString()
+					+ Peer.node.getSimpleURL().toString() + Utils.Space
 					+ Utils.CRLF + Utils.CRLF).getBytes();
 
 			Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key(fileID));
@@ -110,7 +143,7 @@ public class Restore {
 						while(true){
 							Socket tmpConnection = ss.accept();
 							result.add(tmpConnection);
-							System.out.println("ACEITEI CONEXÃO TCP DE:" + tmpConnection.getRemoteSocketAddress());
+							System.out.println("ACEITEI CONEXAO TCP DE:" + tmpConnection.getRemoteSocketAddress());
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
