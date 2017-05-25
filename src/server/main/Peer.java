@@ -12,7 +12,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -54,6 +53,7 @@ public class Peer{
 	private Listener listener;
 	private Thread listenerThread;
 	private SimpleURL simpleURL;
+	private SimpleURL dhtURL;
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -91,9 +91,7 @@ public class Peer{
 
 		System.out.println("Starting services...");
 
-		listener = new Listener();
-
-		listenerThread = new Thread(listener);
+		
 		/*try {
 			// Bind the remote object's stub in the registry
 			ClientAppListener clientAppListener = new ClientAppListener();
@@ -112,7 +110,7 @@ public class Peer{
 			rdCheckerThread.start();
 		}
 
-		listenerThread.start();
+		
 
 		System.out.println("Services running...");
 
@@ -124,7 +122,9 @@ public class Peer{
 	}
 
 	public void startListening(){
-
+		listener = new Listener();
+		listenerThread = new Thread(listener);
+		listenerThread.start();
 	}
 
 	public void safeClose(){
@@ -185,6 +185,7 @@ public class Peer{
 				if(selected != null){
 					IPAddress = (String) selected;
 					simpleURL = new SimpleURL(IPAddress, port);
+					dhtURL = new SimpleURL(IPAddress, port + 1);
 					udpSocket = new DatagramSocket(port);
 					return true;
 				}else{
@@ -216,6 +217,7 @@ public class Peer{
 					System.out.println(IPAddress);
 					simpleURL = new SimpleURL(IPAddress, port);
 					udpSocket = new DatagramSocket(port);
+					dhtURL = new SimpleURL(IPAddress, port + 1);
 					return true;
 				}
 				System.out.println(gateways.size()+" gateway(s) found\n");
@@ -235,6 +237,7 @@ public class Peer{
 				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
 				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
 				simpleURL = new SimpleURL(IPAddress, port);
+				dhtURL = new SimpleURL(IPAddress, port + 1);
 				udpSocket = new DatagramSocket(port);
 
 				if (null != Peer.node.getActiveGW()) {
@@ -302,7 +305,7 @@ public class Peer{
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
 		try {
-			localURL = new URL (protocol + "://"+simpleURL.toString()+"/");
+			localURL = new URL (protocol + "://"+dhtURL.toString()+"/");
 		} catch (IOException e){
 			throw new RuntimeException (e);
 		}

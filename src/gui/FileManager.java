@@ -1,17 +1,21 @@
 package gui;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Set;
 
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -21,9 +25,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-
-import org.xml.sax.SAXException;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -31,25 +36,11 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import database.Files;
-import database.MyConnection;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
 import server.protocol.Backup;
 import server.task.initiatorPeer.Delete;
-
-import javax.swing.border.BevelBorder;
-import javax.swing.JLabel;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Set;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 public class FileManager extends JFrame {
 
@@ -248,9 +239,9 @@ public class FileManager extends JFrame {
 
 	private void updateFooter(){
 		try {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1) + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
 		} catch (ServiceException e1) {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort());
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1));
 			e1.printStackTrace();
 		}
 	}

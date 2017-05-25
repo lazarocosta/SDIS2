@@ -1,8 +1,8 @@
 package server.protocol;
 
-import utils.Utils;
 import server.main.Peer;
 import server.task.initiatorPeer.Delete;
+import utils.Utils;
 
 public class DeleteProtocol {
     //private static final int N_DELETES_TRIES = 5;

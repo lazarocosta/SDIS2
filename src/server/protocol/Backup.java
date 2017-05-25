@@ -2,18 +2,23 @@ package server.protocol;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.HashSet;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Set;
 
-import utils.*;
+import de.uniba.wiai.lspi.chord.console.command.entry.Key;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
-import server.task.initiatorPeer.Delete;
 import server.task.initiatorPeer.PutChunk;
+import utils.SimpleURL;
+import utils.Utils;
 
 public class Backup {
 
@@ -39,8 +44,8 @@ public class Backup {
 			}*/
 		//Peer.mdMap.put(filePath,fileID);
 		//Utils.writeMD();
-		
-		HashSet<SimpleURL> availablePeers = getAvailablePeers();
+
+		ArrayList<Socket> availablePeers = getAvailablePeers();
 
 		try {
 			InputStream in = new FileInputStream(f);
@@ -85,16 +90,68 @@ public class Backup {
 		}
 	}
 
-	private HashSet<SimpleURL> getAvailablePeers() {
-		byte[] header = new String("AVAILABLE?" + Utils.Space
-                + Peer.node.getSimpleURL().toString()
-                + Utils.CRLF + Utils.CRLF).getBytes();
+	private ArrayList<Socket> getAvailablePeers() {
+		ArrayList<Socket> result = new ArrayList<Socket>();
 
-        //RD
-        //InetAddress IPAddress = InetAddress.getByName(Peer.mdbAddress);
-        //DatagramPacket sendPacket = new DatagramPacket(header, header.length, IPAddress, Peer.mdbPort);
+		try {
+			byte[] availableMsg = new String("AVAILABLE?" + Utils.Space
+					+ "1.0" + Utils.Space
+					+ Peer.node.getSimpleURL().toString()
+					+ Utils.CRLF + Utils.CRLF).getBytes();
 
-        /*for (int i = 1; i <= 5; i++) {
+			Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+
+			ServerSocket ss = new ServerSocket(Peer.node.getPort());
+
+			Thread t = new Thread(){
+				public void run() {
+					try {
+						while(true){
+							Socket tmpConnection = ss.accept();
+							result.add(tmpConnection);
+							System.out.println("ACEITEI CONEXÃO TCP DE:" + tmpConnection);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+
+			t.start();
+			try {
+				//DatagramSocket clientSocket = new DatagramSocket();
+				for(Serializable peer: availablePeers){
+					if(!Peer.node.getSimpleURL().equals(peer)){
+						System.out.println("vou mandar");
+						InetAddress IPAddress = InetAddress.getByName(((SimpleURL)peer).getIpAddress());
+						DatagramPacket sendPacket = new DatagramPacket(availableMsg, availableMsg.length, IPAddress, ((SimpleURL)peer).getPort());
+						Peer.node.getUDPSocket().send(sendPacket);
+					}
+				}
+				//clientSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+
+
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			t.interrupt();
+			ss.close();
+		} catch (ServiceException | IOException e) {
+			e.printStackTrace();
+		}
+		return result;
+		//RD
+		//InetAddress IPAddress = InetAddress.getByName(Peer.mdbAddress);
+		//DatagramPacket sendPacket = new DatagramPacket(header, header.length, IPAddress, Peer.mdbPort);
+
+		/*for (int i = 1; i <= 5; i++) {
             Peer.node.udpSocket.send(sendPacket);
             Thread.sleep(400 * i);
             rds = Peer.rdMap.get(this.fileID + Utils.FS + this.chunkNo);
@@ -102,6 +159,5 @@ public class Backup {
                 break;
             }
         }*/
-		return null;
 	}
 }

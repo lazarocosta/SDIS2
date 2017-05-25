@@ -22,6 +22,25 @@ public class SimpleURL implements Serializable {
 		return ipAddress + ":" + port;
 	}
 	
+	@Override
+	public boolean equals(Object obj){
+		if (obj == null) {
+	        return false;
+	    }
+	    if (!SimpleURL.class.isAssignableFrom(obj.getClass())) {
+	        return false;
+	    }
+	    final SimpleURL url = (SimpleURL) obj;
+	    
+		
+		if(ipAddress.equals(url.getIpAddress())){
+			if(port == url.getPort()){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public String getIpAddress() {
 		return ipAddress;
 	}
