@@ -113,42 +113,42 @@ public class Backup {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            }
+			}
 
-            in.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
-    private ArrayList<Socket> getAvailablePeers(String fileID) {
-        ArrayList<Socket> result = new ArrayList<Socket>();
+	private ArrayList<Socket> getAvailablePeers(String fileID) {
+		ArrayList<Socket> result = new ArrayList<Socket>();
 
-        try {
-            byte[] availableMsg = new String("AVAILABLE?" + Utils.Space
-                    + "1.0" + Utils.Space
-                    + fileID + Utils.Space
-                    + Peer.node.getSimpleURL().toString()
-                    + Utils.CRLF + Utils.CRLF).getBytes();
+		try {
+			byte[] availableMsg = new String("PUTCHUNK?" + Utils.Space
+					+ "1.0" + Utils.Space
+					+ fileID + Utils.Space
+					+ Peer.node.getSimpleURL().toString() + Utils.Space
+					+ Utils.CRLF + Utils.CRLF).getBytes();
 
-            Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
 
-            ServerSocket ss = new ServerSocket(Peer.node.getPort());
+			ServerSocket ss = new ServerSocket(Peer.node.getPort());
 
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        while (true) {
-                            Socket tmpConnection = ss.accept();
-                            result.add(tmpConnection);
-                            System.out.println("ACEITEI CONEX�O TCP DE:" + tmpConnection.getRemoteSocketAddress());
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
+			Thread t = new Thread(){
+				public void run() {
+					try {
+						while(true){
+							Socket tmpConnection = ss.accept();
+							result.add(tmpConnection);
+							System.out.println("ACEITEI CONEXAO TCP DE:" + tmpConnection.getRemoteSocketAddress());
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
 
             t.start();
             try {
