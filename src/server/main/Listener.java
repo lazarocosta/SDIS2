@@ -5,10 +5,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import server.task.commonPeer.Delete;
-import server.task.commonPeer.GetChunk;
-import server.task.commonPeer.Removed;
-import server.task.commonPeer.Stored;
+import server.task.commonPeer.*;
 import utils.SimpleURL;
 
 public class Listener implements Runnable {
@@ -64,9 +61,15 @@ public class Listener implements Runnable {
 						System.out.println("RECEBI PEDIDO CONEXÃO TCP DE:" + cmdSplit[2]);
 						//TODO confirmar se pode mesmo se ligar para receber
 						//Passar para outra funcao
-						SimpleURL url = new SimpleURL(cmdSplit[2]);
-						Socket s = new Socket(InetAddress.getByName(url.getIpAddress()), url.getPort());
-						
+						SimpleURL url = new SimpleURL(cmdSplit[3]);
+						new Thread(new PutChunk(
+								cmdSplit[1], //Version
+								cmdSplit[2],
+								url.getIpAddress(),
+								url.getPort()
+								)).start();
+						//Socket s = new Socket(InetAddress.getByName(url.getIpAddress()), url.getPort());
+
 					}
 				}
 			}

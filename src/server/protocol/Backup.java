@@ -1,5 +1,7 @@
 package server.protocol;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,7 +47,7 @@ public class Backup {
 		//Peer.mdMap.put(filePath,fileID);
 		//Utils.writeMD();
 
-		ArrayList<Socket> availablePeers = getAvailablePeers();
+		ArrayList<Socket> availableConnections = getAvailablePeers(fileID);
 
 		try {
 			InputStream in = new FileInputStream(f);
@@ -57,30 +59,47 @@ public class Backup {
 
 			//Create chunks and call PutChunks threads
 			for(int i = 0;i < numChunks;i++){
-				int numbytesRead;
+				int numBytesRead = 0;
 				//Special case 'Last Chunk'
 				if(i == numChunks-1){
 					chunk = new byte[lastChunkSize];
 					//Only reads if the size of the last Chunk is not 0, special case from multiples of 64000 in the file sizes
 					if(lastChunkSize != 0){
-						numbytesRead = in.read(chunk, 0, lastChunkSize);
+						numBytesRead = in.read(chunk, 0, lastChunkSize);
 					}
-				}else numbytesRead = in.read(chunk, 0, 64000);
+				}else numBytesRead = in.read(chunk, 0, 64000);
 
-				Thread putChunkThread = new Thread(new PutChunk(
+				//BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				for(Socket s:availableConnections){
+					DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
+					//sentence = inFromUser.readLine();
+					outToServer.writeBytes(new String("PUTCHUNK" + Utils.Space
+		                    + protocolVersion + Utils.Space
+		                    + fileID + Utils.Space
+		                    + i + Utils.Space
+		                    + numBytesRead + Utils.Space
+		                    + Utils.CRLF));
+					outToServer.write(chunk, 0, numBytesRead);
+					outToServer.flush();
+					//modifiedSentence = inFromServer.readLine();
+					//System.out.println("FROM SERVER: " + modifiedSentence);
+				}
+
+
+				/*Thread putChunkThread = new Thread(new PutChunk(
 						protocolVersion,
 						fileID,
 						i,
 						replicationDeg,
 						chunk
 						));
-				putChunkThread.start();
-				try {
+				putChunkThread.start();*/
+				/*try {
 					putChunkThread.join();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 			}
 
 			in.close();
@@ -90,12 +109,13 @@ public class Backup {
 		}
 	}
 
-	private ArrayList<Socket> getAvailablePeers() {
+	private ArrayList<Socket> getAvailablePeers(String fileID) {
 		ArrayList<Socket> result = new ArrayList<Socket>();
 
 		try {
 			byte[] availableMsg = new String("AVAILABLE?" + Utils.Space
 					+ "1.0" + Utils.Space
+					+ fileID + Utils.Space
 					+ Peer.node.getSimpleURL().toString()
 					+ Utils.CRLF + Utils.CRLF).getBytes();
 
@@ -109,7 +129,7 @@ public class Backup {
 						while(true){
 							Socket tmpConnection = ss.accept();
 							result.add(tmpConnection);
-							System.out.println("ACEITEI CONEXÃO TCP DE:" + tmpConnection);
+							System.out.println("ACEITEI CONEXÃO TCP DE:" + tmpConnection.getRemoteSocketAddress());
 						}
 					} catch (IOException e) {
 						e.printStackTrace();

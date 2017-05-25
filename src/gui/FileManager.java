@@ -147,12 +147,18 @@ public class FileManager extends JFrame {
 						try {
 							int fileID = Files.insertNewFile(Peer.connection, Peer.node.getEmail(), uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
 							System.out.println(fileID);
-							new Backup("1.0", "" +fileID, uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
+
+							Thread backupThread = new Thread(){
+								public void run(){
+									new Backup("1.0", "" +fileID, uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
+								}
+							};
+							backupThread.start();
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-											
+
 					}
 				}
 			}
@@ -272,6 +278,7 @@ public class FileManager extends JFrame {
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
 			if(actionEvent.getActionCommand().equals("Delete")){
+				//DELETE
 				int fileID = fileIDs[tree.getLeadSelectionRow()];
 				try {
 					Files.moveFileToDeleted(Peer.connection, fileID);
@@ -285,11 +292,26 @@ public class FileManager extends JFrame {
 
 
 			}else if(actionEvent.getActionCommand().equals("Restore")){
+				//RESTORE
+				int fileID = fileIDs[tree.getLeadSelectionRow()];
+				JFileChooser selectFolder = new JFileChooser();
+				selectFolder.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				if (selectFolder.showOpenDialog(FileManager.this) == JFileChooser.APPROVE_OPTION) { 
+					System.out.println("getCurrentDirectory(): " + selectFolder.getCurrentDirectory());
+					//RESTORE START
+						Thread restoreThread = new Thread(){
+							public void run(){
+								new Restore("1.0", "" +fileID, selectFolder.getCurrentDirectory());
+							}
+						};
+						restoreThread.start();
+				}else {
+					System.out.println("No Selection ");
+				}
 
-
-			}
-			System.out.println("Selected: " + actionEvent.getActionCommand());
 		}
+		System.out.println("Selected: " + actionEvent.getActionCommand());
 	}
+}
 
 }
