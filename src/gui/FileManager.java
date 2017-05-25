@@ -1,24 +1,34 @@
 package gui;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Set;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-
-import org.xml.sax.SAXException;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -26,24 +36,11 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import database.Files;
-import database.MyConnection;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
+import server.protocol.Backup;
 import server.task.initiatorPeer.Delete;
-
-import javax.swing.border.BevelBorder;
-import javax.swing.JLabel;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Set;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 public class FileManager extends JFrame {
 
@@ -137,7 +134,33 @@ public class FileManager extends JFrame {
 		upload_btn.addMouseListener(new  MouseAdapter(){
 			public void mouseClicked(MouseEvent arg0){
 				JFileChooser uploadFileChooser = new JFileChooser();
-				int returnVal = uploadFileChooser.showDialog(FileManager.this, "Upload");
+				if (uploadFileChooser.showDialog(FileManager.this, "Upload") == JFileChooser.APPROVE_OPTION) {
+					String message = "Please select file privacy you want?";
+					JRadioButton privateButton = new JRadioButton("Private", true);
+					JRadioButton publicButton = new JRadioButton("Public", false);
+					ButtonGroup choices = new ButtonGroup();
+					choices.add(privateButton);
+					choices.add(publicButton);
+					Object[] params = {message, privateButton, publicButton};
+					if (JOptionPane.showConfirmDialog(null, params, "File privacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						//BACKUP START
+						try {
+							int fileID = Files.insertNewFile(Peer.connection, Peer.node.getEmail(), uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
+							System.out.println(fileID);
+
+							Thread backupThread = new Thread(){
+								public void run(){
+									new Backup("1.0", "" +fileID, uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
+								}
+							};
+							backupThread.start();
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					}
+				}
 			}
 		});
 		contentPane.add(upload_btn, "2, 2, fill, default");
@@ -222,9 +245,9 @@ public class FileManager extends JFrame {
 
 	private void updateFooter(){
 		try {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort() + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1) + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
 		} catch (ServiceException e1) {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + Peer.node.getPort());
+			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1));
 			e1.printStackTrace();
 		}
 	}
@@ -255,6 +278,7 @@ public class FileManager extends JFrame {
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
 			if(actionEvent.getActionCommand().equals("Delete")){
+				//DELETE
 				int fileID = fileIDs[tree.getLeadSelectionRow()];
 				try {
 					Files.moveFileToDeleted(Peer.connection, fileID);
@@ -268,11 +292,26 @@ public class FileManager extends JFrame {
 
 
 			}else if(actionEvent.getActionCommand().equals("Restore")){
+				//RESTORE
+				int fileID = fileIDs[tree.getLeadSelectionRow()];
+				JFileChooser selectFolder = new JFileChooser();
+				selectFolder.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				if (selectFolder.showOpenDialog(FileManager.this) == JFileChooser.APPROVE_OPTION) { 
+					System.out.println("getCurrentDirectory(): " + selectFolder.getCurrentDirectory());
+					//RESTORE START
+						Thread restoreThread = new Thread(){
+							public void run(){
+								new Restore("1.0", "" +fileID, selectFolder.getCurrentDirectory());
+							}
+						};
+						restoreThread.start();
+				}else {
+					System.out.println("No Selection ");
+				}
 
-
-			}
-			System.out.println("Selected: " + actionEvent.getActionCommand());
 		}
+		System.out.println("Selected: " + actionEvent.getActionCommand());
 	}
+}
 
 }

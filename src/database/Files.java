@@ -16,7 +16,7 @@ public class Files {
 	 * @return Arraylist of string arrays containing file ID and name of a file 
 	 * @throws SQLException
 	 */
-	public static ArrayList<String[]> getFileNames(Connection c,String email) throws SQLException{		
+	public static ArrayList<String[]> getFileNames(Connection c, String email) throws SQLException{		
 		//Get info from files
 		PreparedStatement preparedStatement = c.prepareStatement("SELECT * FROM (p2p.files JOIN p2p.users USING (user_id)) WHERE email = ?");
 		preparedStatement.setString(1, email);
@@ -71,6 +71,29 @@ public class Files {
 		};
 
 		return files;
+	}
+	
+	/**
+	 * Inserts new file register in database
+	 * @param c Database connection
+	 * @param email User email
+	 * @param name Name of the file
+	 * @param isPublic Privacy of file (private or public)
+	 * @return Inserted File ID
+	 * @throws SQLException
+	 */
+	public static int insertNewFile(Connection c, String email, String name, boolean isPublic) throws SQLException {
+		PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.files(user_id, name, public) VALUES ((SELECT user_id FROM p2p.users WHERE email = ?), ?, ?) RETURNING file_id");
+		preparedStatement.setString(1, email);
+		preparedStatement.setString(2, name);
+		preparedStatement.setBoolean(3, isPublic);
+
+		ResultSet rs = preparedStatement.executeQuery();
+		if(rs.next()){
+			return rs.getInt(1);
+		}else{
+			return -1;
+		}
 	}
 
 	/**

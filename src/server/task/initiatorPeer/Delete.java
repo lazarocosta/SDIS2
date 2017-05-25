@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.Set;
 
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
@@ -31,10 +30,10 @@ public class Delete implements Runnable {
 			for(Serializable peer : peersWFile){
 				System.out.println(peer.toString());
 			}
-			for(Serializable peer : peersWFile){
-				DatagramSocket clientSocket;
-				try {
-					clientSocket = new DatagramSocket();
+			try {
+				DatagramSocket clientSocket = new DatagramSocket();
+				for(Serializable peer : peersWFile){
+
 					InetAddress IPAddress = InetAddress.getByName(((SimpleURL)peer).getIpAddress());
 					byte[] sendData = new String(
 							"DELETE" + Utils.Space +
@@ -45,15 +44,16 @@ public class Delete implements Runnable {
 							.getBytes();
 					DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, ((SimpleURL)peer).getPort());
 					clientSocket.send(sendPacket);
-					clientSocket.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-				if (this.protocolVersion.equals("2.0")) {
-					Peer.deletedFiles.add(this.fileID);
-				}
+				clientSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			/*if (this.protocolVersion.equals("2.0")) {
+				Peer.deletedFiles.add(this.fileID);
+			}*/
+
 		} catch (ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

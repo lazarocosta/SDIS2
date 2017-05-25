@@ -1,7 +1,12 @@
 package server.main;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -13,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JOptionPane;
@@ -38,6 +44,8 @@ public class Peer{
 	public static Connection connection;
 	private String email = null;
 	private boolean local_connection = false;
+	private DatagramSocket udpSocket;
+	private boolean port_forwarded = false;
 	private String IPAddress = null;
 	private int port = 60000;
 	private GatewayDevice activeGW = new GatewayDevice();
@@ -45,6 +53,7 @@ public class Peer{
 	private Listener listener;
 	private Thread listenerThread;
 	private SimpleURL simpleURL;
+	private SimpleURL dhtURL;
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
@@ -82,9 +91,7 @@ public class Peer{
 
 		System.out.println("Starting services...");
 
-		listener = new Listener();
-
-		listenerThread = new Thread(listener);
+		
 		/*try {
 			// Bind the remote object's stub in the registry
 			ClientAppListener clientAppListener = new ClientAppListener();
@@ -103,7 +110,7 @@ public class Peer{
 			rdCheckerThread.start();
 		}
 
-		listenerThread.start();
+		
 
 		System.out.println("Services running...");
 
@@ -114,18 +121,27 @@ public class Peer{
 		System.out.println("Remote Object Name: " + remoteObject);
 	}
 
+	public void startListening(){
+		listener = new Listener();
+		listenerThread = new Thread(listener);
+		listenerThread.start();
+	}
+
 	public void safeClose(){
-		try {
 			listenerThread.interrupt();
+			udpSocket.close();
 			chord.remove(new Key("AVAILABLE"), simpleURL);
 			chord.leave();
 			if(!local_connection){
-				activeGW.deletePortMapping(port,"TCP");
+				try {
+					activeGW.deletePortMapping(port,"TCP");
+				
 				activeGW.deletePortMapping(port,"UDP");
+				} catch (IOException | SAXException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		} catch (IOException | SAXException e) {
-			e.printStackTrace();
-		}
 	}
 
 
@@ -154,7 +170,7 @@ public class Peer{
 					}
 				}
 
-				// JOpitonPane
+				// JOptionPane
 				String[] choices = new String[choicestmp.size()];
 				choicestmp.toArray(choices);
 				Object selected = JOptionPane.showInputDialog(
@@ -169,6 +185,8 @@ public class Peer{
 				if(selected != null){
 					IPAddress = (String) selected;
 					simpleURL = new SimpleURL(IPAddress, port);
+					dhtURL = new SimpleURL(IPAddress, port + 1);
+					udpSocket = new DatagramSocket(port);
 					return true;
 				}else{
 					return false;
@@ -191,7 +209,16 @@ public class Peer{
 				if (gateways.isEmpty()) {
 					System.out.println("No gateways found");
 					System.out.println("Stopping weupnp");
-					return false;
+					//NO GATEWAY, FIND EXTERNAL IP
+					java.net.URL whatismyip = new java.net.URL("http://checkip.amazonaws.com");
+					BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+					Peer.node.setIPAddress(in.readLine());
+					System.out.println(IPAddress);
+					simpleURL = new SimpleURL(IPAddress, port);
+					udpSocket = new DatagramSocket(port);
+					dhtURL = new SimpleURL(IPAddress, port + 1);
+					return true;
 				}
 				System.out.println(gateways.size()+" gateway(s) found\n");
 
@@ -210,13 +237,15 @@ public class Peer{
 				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
 				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
 				simpleURL = new SimpleURL(IPAddress, port);
+				dhtURL = new SimpleURL(IPAddress, port + 1);
+				udpSocket = new DatagramSocket(port);
 
 				if (null != Peer.node.getActiveGW()) {
 					System.out.println("Using gateway: " + Peer.node.getActiveGW().getFriendlyName());
 				} else {
 					System.out.println("No active gateway device found");
 					System.out.println("Stopping weupnp");
-					return false;
+					return true;
 				}
 
 
@@ -238,23 +267,24 @@ public class Peer{
 
 				System.out.println("Querying device to see if a port mapping already exists for port "+ Peer.node.getPort());
 
-				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
-					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return false;
-				}
+
 				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"UDP",portMapping)) {
 					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return false;
+					if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
+						System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
+					}
 				}
 
 				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
 
 				// test static lease duration mapping
-				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
-					System.out.println("Mapping TCP SUCCESSFUL.");
-				}
 				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
 					System.out.println("Mapping UDP SUCCESSFUL.");
+
+					if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
+						System.out.println("Mapping TCP SUCCESSFUL.");
+						port_forwarded = true;
+					}
 				}
 				return true;
 			} catch (IOException | SAXException | ParserConfigurationException e) {
@@ -275,7 +305,7 @@ public class Peer{
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
 		try {
-			localURL = new URL (protocol + "://"+simpleURL.toString()+"/");
+			localURL = new URL (protocol + "://"+dhtURL.toString()+"/");
 		} catch (IOException e){
 			throw new RuntimeException (e);
 		}
@@ -297,7 +327,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.create(localURL);
-				chord.insertAsync(new Key("AVAILABLE"), simpleURL);
+				//chord.insertAsync(new Key("AVAILABLE"), simpleURL);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not create DHT!", e);
 			}
@@ -355,6 +385,32 @@ public class Peer{
 
 	}
 
+	/**
+	 * Opens a hole in NAT to be able to receive udp messages from available peers in chord network
+	 * @return
+	 */
+	public void udpHolePunch(){
+		try {
+			Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			byte[] b2 = "Hello".getBytes();
+			byte[] b1 = new byte[6];
+			System.arraycopy(b2, 0, b1, 0, b2.length);
+
+			for(Serializable s : paulo){
+				DatagramPacket packet;
+				try {
+					packet = new DatagramPacket(b1, b1.length, InetAddress.getByName(((SimpleURL)s).getIpAddress()), ((SimpleURL)s).getPort());
+					udpSocket.send(packet);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (ServiceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 
 	public int getPort() {
 		return port;
@@ -390,6 +446,21 @@ public class Peer{
 
 	public void setIPAddress(String iPAddress) {
 		IPAddress = iPAddress;
+	}
+
+
+	public DatagramSocket getUDPSocket() {
+		return udpSocket;
+	}
+
+
+	public boolean is_port_forwarded() {
+		return port_forwarded;
+	}
+
+
+	public SimpleURL getSimpleURL() {
+		return simpleURL;
 	}
 
 }

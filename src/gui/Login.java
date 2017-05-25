@@ -2,36 +2,31 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.SQLException;
+import java.util.Random;
 
-import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPasswordField;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import com.jgoodies.forms.layout.FormLayout;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
 import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import database.MyConnection;
 import database.Users;
 import server.main.Peer;
-import utils.Utils;
-
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Random;
 
 public class Login extends JFrame{
 
@@ -155,6 +150,13 @@ public class Login extends JFrame{
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
 								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
+									ProgressBar.frame.setStatus("Initializing UDP listening...");
+									Peer.node.startListening();
+
+									if(!Peer.node.is_port_forwarded()){
+										ProgressBar.frame.setStatus("Holepunching NAT...");
+										//Peer.node.udpHolePunch();
+									}
 
 									ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
 									if(local_check.isSelected()){
@@ -175,6 +177,7 @@ public class Login extends JFrame{
 									ProgressBar.frame.setStatus("Login successful!");
 
 									closeProgressBarAndResumeLogin();
+									Login.frame.setEnabled(false);
 									FileManager.frame = new FileManager();
 									FileManager.frame.setVisible(true);
 									frame.dispose();

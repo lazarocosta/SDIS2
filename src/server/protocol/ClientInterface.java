@@ -1,6 +1,7 @@
 package server.protocol;
 
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 public interface ClientInterface extends Remote {
     public void backup(String protocolVersion, String filePath, int replicationDeg) throws RemoteException;
