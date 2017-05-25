@@ -11,6 +11,12 @@ public class SimpleURL implements Serializable {
 		this.ipAddress = ipAddress;
 		this.port = port;
 	}
+	
+	public SimpleURL(String ipAndPort){
+		int colonPos = ipAndPort.indexOf(':');
+		this.ipAddress = ipAndPort.substring(0, colonPos);
+		this.port = Integer.parseInt(ipAndPort.substring(colonPos + 1));
+	}
 
 	public String toString(){
 		return ipAddress + ":" + port;

@@ -5,6 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.HashSet;
 
 import utils.*;
 import server.main.Peer;
@@ -13,28 +17,30 @@ import server.task.initiatorPeer.PutChunk;
 
 public class Backup {
 
-	public Backup(String protocolVersion, String filePath, int replicationDeg) {
+	public Backup(String protocolVersion, String fileID, String filePath, int replicationDeg) {
 
 		File f = new File(filePath);
 		long fileLength = f.length();
 		byte[] chunk = new byte[64000];
 
 		//get File ID
-		String fileID = Utils.getFileID(filePath);
-		String lastFileID = Peer.mdMap.get(filePath);
-		if(lastFileID != null && lastFileID.equals(fileID)){
-		}else{
-			if(lastFileID != null && !lastFileID.equals(fileID)){
-				new Thread(new Delete(protocolVersion, lastFileID)).start();
-			}
-			if(protocolVersion.equals("2.0")){
+		//String fileID = Utils.getFileID(filePath);
+		//String lastFileID = Peer.mdMap.get(filePath);
+		//if(lastFileID != null && lastFileID.equals(fileID)){
+		//}else{
+		//if(lastFileID != null && !lastFileID.equals(fileID)){
+		//	new Thread(new Delete(protocolVersion, lastFileID)).start();
+		//}
+		/*if(protocolVersion.equals("2.0")){
 				Peer.deletedFiles.remove(fileID); // remove from deleted files list
 				for(String delFileID: Peer.deletedFiles){
 					new Thread(new Delete(protocolVersion, delFileID)).start();
 				}
-			}
-			Peer.mdMap.put(filePath,fileID);
-			Utils.writeMD();
+			}*/
+		//Peer.mdMap.put(filePath,fileID);
+		//Utils.writeMD();
+		
+		HashSet<SimpleURL> availablePeers = getAvailablePeers();
 
 		try {
 			InputStream in = new FileInputStream(f);
@@ -59,10 +65,10 @@ public class Backup {
 				Thread putChunkThread = new Thread(new PutChunk(
 						protocolVersion,
 						fileID,
-					    i,
-					    replicationDeg,
-					    chunk
-					    ));
+						i,
+						replicationDeg,
+						chunk
+						));
 				putChunkThread.start();
 				try {
 					putChunkThread.join();
@@ -78,6 +84,24 @@ public class Backup {
 			e.printStackTrace();
 		}
 	}
-}
 
+	private HashSet<SimpleURL> getAvailablePeers() {
+		byte[] header = new String("AVAILABLE?" + Utils.Space
+                + Peer.node.getSimpleURL().toString()
+                + Utils.CRLF + Utils.CRLF).getBytes();
+
+        //RD
+        //InetAddress IPAddress = InetAddress.getByName(Peer.mdbAddress);
+        //DatagramPacket sendPacket = new DatagramPacket(header, header.length, IPAddress, Peer.mdbPort);
+
+        /*for (int i = 1; i <= 5; i++) {
+            Peer.node.udpSocket.send(sendPacket);
+            Thread.sleep(400 * i);
+            rds = Peer.rdMap.get(this.fileID + Utils.FS + this.chunkNo);
+            if (rds != null && rds[0] <= rds[1]) {
+                break;
+            }
+        }*/
+		return null;
+	}
 }

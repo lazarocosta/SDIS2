@@ -1,7 +1,9 @@
 package server.main;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -126,18 +128,20 @@ public class Peer{
 	}
 
 	public void safeClose(){
-		try {
 			listenerThread.interrupt();
 			udpSocket.close();
 			chord.remove(new Key("AVAILABLE"), simpleURL);
 			chord.leave();
 			if(!local_connection){
-				activeGW.deletePortMapping(port,"TCP");
+				try {
+					activeGW.deletePortMapping(port,"TCP");
+				
 				activeGW.deletePortMapping(port,"UDP");
+				} catch (IOException | SAXException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		} catch (IOException | SAXException e) {
-			e.printStackTrace();
-		}
 	}
 
 
@@ -166,7 +170,7 @@ public class Peer{
 					}
 				}
 
-				// JOpitonPane
+				// JOptionPane
 				String[] choices = new String[choicestmp.size()];
 				choicestmp.toArray(choices);
 				Object selected = JOptionPane.showInputDialog(
@@ -204,7 +208,15 @@ public class Peer{
 				if (gateways.isEmpty()) {
 					System.out.println("No gateways found");
 					System.out.println("Stopping weupnp");
-					return false;
+					//NO GATEWAY, FIND EXTERNAL IP
+					java.net.URL whatismyip = new java.net.URL("http://checkip.amazonaws.com");
+					BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+					Peer.node.setIPAddress(in.readLine());
+					System.out.println(IPAddress);
+					simpleURL = new SimpleURL(IPAddress, port);
+					udpSocket = new DatagramSocket(port);
+					return true;
 				}
 				System.out.println(gateways.size()+" gateway(s) found\n");
 
@@ -230,7 +242,7 @@ public class Peer{
 				} else {
 					System.out.println("No active gateway device found");
 					System.out.println("Stopping weupnp");
-					return false;
+					return true;
 				}
 
 
@@ -252,13 +264,12 @@ public class Peer{
 
 				System.out.println("Querying device to see if a port mapping already exists for port "+ Peer.node.getPort());
 
-				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
-					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return false;
-				}
+
 				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"UDP",portMapping)) {
 					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					return false;
+					if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
+						System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
+					}
 				}
 
 				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
@@ -313,7 +324,7 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.create(localURL);
-				chord.insertAsync(new Key("AVAILABLE"), simpleURL);
+				//chord.insertAsync(new Key("AVAILABLE"), simpleURL);
 			} catch (ServiceException e) {
 				throw new RuntimeException("Could not create DHT!", e);
 			}
@@ -442,6 +453,11 @@ public class Peer{
 
 	public boolean is_port_forwarded() {
 		return port_forwarded;
+	}
+
+
+	public SimpleURL getSimpleURL() {
+		return simpleURL;
 	}
 
 }

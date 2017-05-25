@@ -182,6 +182,7 @@ public class Login extends JFrame{
 									ProgressBar.frame.setStatus("Login successful!");
 
 									closeProgressBarAndResumeLogin();
+									Login.frame.setEnabled(false);
 									FileManager.frame = new FileManager();
 									FileManager.frame.setVisible(true);
 									frame.dispose();

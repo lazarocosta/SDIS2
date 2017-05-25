@@ -6,14 +6,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -30,6 +35,7 @@ import database.MyConnection;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
+import server.protocol.Backup;
 import server.task.initiatorPeer.Delete;
 
 import javax.swing.border.BevelBorder;
@@ -137,7 +143,27 @@ public class FileManager extends JFrame {
 		upload_btn.addMouseListener(new  MouseAdapter(){
 			public void mouseClicked(MouseEvent arg0){
 				JFileChooser uploadFileChooser = new JFileChooser();
-				int returnVal = uploadFileChooser.showDialog(FileManager.this, "Upload");
+				if (uploadFileChooser.showDialog(FileManager.this, "Upload") == JFileChooser.APPROVE_OPTION) {
+					String message = "Please select file privacy you want?";
+					JRadioButton privateButton = new JRadioButton("Private", true);
+					JRadioButton publicButton = new JRadioButton("Public", false);
+					ButtonGroup choices = new ButtonGroup();
+					choices.add(privateButton);
+					choices.add(publicButton);
+					Object[] params = {message, privateButton, publicButton};
+					if (JOptionPane.showConfirmDialog(null, params, "File privacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						//BACKUP START
+						try {
+							int fileID = Files.insertNewFile(Peer.connection, Peer.node.getEmail(), uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
+							System.out.println(fileID);
+							new Backup("1.0", "" +fileID, uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+											
+					}
+				}
 			}
 		});
 		contentPane.add(upload_btn, "2, 2, fill, default");
