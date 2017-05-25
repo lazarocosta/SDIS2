@@ -16,8 +16,9 @@ public class HybridEncryption {
     private KeyPair asymmetricKeyPair;
     private SecretKeySpec symmetricKey;
     private IvParameterSpec iv;
+    public static String pathKey = "KEYS";
 
-    HybridEncryption() {
+    public HybridEncryption() {
         try {
             this.asymmetricKeyPair = Encryptor.generateAsymmetricKeys();
             this.symmetricKey = Encryptor.generateSymmetricKey();
@@ -27,7 +28,7 @@ public class HybridEncryption {
         }
     }
 
-    HybridEncryption(KeyPair asymmetricKeyPair, SecretKeySpec symmetricKey, IvParameterSpec iv){
+    public HybridEncryption(KeyPair asymmetricKeyPair, SecretKeySpec symmetricKey, IvParameterSpec iv){
         this.asymmetricKeyPair = asymmetricKeyPair;
         this.symmetricKey = symmetricKey;
         this.iv = iv;
@@ -67,6 +68,15 @@ public class HybridEncryption {
 
     public IvParameterSpec getIv() {
         return iv;
+    }
+
+    public void saveKeysFile(){
+
+
+    }
+
+    public void loadKeysFile (){
+
     }
 
     //FOR TESTING
