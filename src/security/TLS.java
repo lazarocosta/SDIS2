@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyStore;
@@ -50,7 +51,7 @@ public class TLS {
 
     }
 
-    public static ServerSocket createServerSocketFromContext(int port){
+    public static ServerSocket createServerSocket(int port){
 
         if(TLS.sslContext == null){
             createSSLContext();
@@ -63,7 +64,7 @@ public class TLS {
             return null;
         }
     }
-    public static Socket createClientSocketFromContext(String host, int port){
+    public static Socket createClientSocket(InetAddress host, int port){
 
         if(TLS.sslContext == null){
             createSSLContext();

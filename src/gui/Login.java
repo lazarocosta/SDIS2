@@ -192,7 +192,7 @@ public class Login extends JFrame{
 							}
 							else{
 								Peer.connection.close();
-								message_lbl.setText("Could not login.");
+								message_lbl.setText("Incorrect username and/or password.");
 								message_lbl.setVisible(true);
 							}
 							closeProgressBarAndResumeLogin();
