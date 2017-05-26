@@ -10,16 +10,19 @@ import javax.crypto.spec.SecretKeySpec;
 //KeyPair(PublicKey publicKey, PrivateKey privateKey)
 public class HybridEncryption {
 
-    static KeyPair asymmetricKeyPair;
+    private PublicKey asymmetricKeyPublic;
+    private PrivateKey asymmetricKeyPrivate;
     private SecretKeySpec symmetricKey;
     private IvParameterSpec iv;
     public static String pathKeyPublic = "KEY_PUBLIC.key";
-    public static String pathKeyPublicasymetric = "KEY_PUBLIC_ASY.key";
+    public static String pathKeySymmetric = "KEY_SYMMETRIC.key";
 
 
     public HybridEncryption() {
         try {
-            this.asymmetricKeyPair = Encryptor.generateAsymmetricKeys();
+            KeyPair keyPair = Encryptor.generateAsymmetricKeys();
+            this.asymmetricKeyPublic = keyPair.getPublic();
+            this.asymmetricKeyPrivate = keyPair.getPrivate();
             this.symmetricKey = Encryptor.generateSymmetricKey();
             this.iv = Encryptor.generateIV();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | UnsupportedEncodingException e) {
@@ -28,8 +31,8 @@ public class HybridEncryption {
     }
 
     public HybridEncryption(KeyPair asymmetricKeyPair, SecretKeySpec symmetricKey, IvParameterSpec iv) {
-        this.asymmetricKeyPair = asymmetricKeyPair;
-        this.symmetricKey = symmetricKey;
+        this.asymmetricKeyPublic = asymmetricKeyPair.getPublic();
+        this.asymmetricKeyPrivate = asymmetricKeyPair.getPrivate();
         this.iv = iv;
     }
 
@@ -42,23 +45,19 @@ public class HybridEncryption {
     }
 
     public byte[] encryptedSymmetricKey() {
-        return Encryptor.encryptRSA(this.asymmetricKeyPair.getPublic(), symmetricKey.getEncoded());
+        return Encryptor.encryptRSA(this.asymmetricKeyPublic, symmetricKey.getEncoded());
     }
 
     public void decryptSymmetricKey(byte[] key) {
-        this.symmetricKey = new SecretKeySpec(Encryptor.decryptRSA(this.asymmetricKeyPair.getPrivate(), key), "AES");
+        this.symmetricKey = new SecretKeySpec(Encryptor.decryptRSA(asymmetricKeyPrivate, key), "AES");
     }
 
-    public Key getAsymmetricPublicKey() {
-        return asymmetricKeyPair.getPublic();
+    public PublicKey getAsymmetricPublicKey() {
+        return asymmetricKeyPublic;
     }
 
-    public Key getAsymmetricPrivateKey() {
-        return asymmetricKeyPair.getPrivate();
-    }
-
-    public KeyPair getAsymmetricKeyPair() {
-        return asymmetricKeyPair;
+    public PrivateKey getAsymmetricPrivateKey() {
+        return asymmetricKeyPrivate;
     }
 
     public SecretKeySpec getSymmetricKey() {
@@ -72,41 +71,63 @@ public class HybridEncryption {
     public void saveKeysFile() {
 
         // Save public key
-        ObjectOutputStream chavePublicaOS = null;
+        ObjectOutputStream keyPublicOb = null;
         try {
-            chavePublicaOS = new ObjectOutputStream(
+            keyPublicOb = new ObjectOutputStream(
                     new FileOutputStream(pathKeyPublic));
 
-            chavePublicaOS.writeObject(asymmetricKeyPair.getPublic());
-            chavePublicaOS.close();
+            keyPublicOb.writeObject(this.encryptedSymmetricKey());
+            keyPublicOb.close();
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
 
+        // Save symmetric Key
+        ObjectOutputStream symmetricKeyOb = null;
+        try {
+            symmetricKeyOb = new ObjectOutputStream(
+                    new FileOutputStream(pathKeySymmetric));
+
+            symmetricKeyOb.write(this.encryptedSymmetricKey());
+            symmetricKeyOb.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
+    public boolean loadKeysFile() {
 
-    public PublicKey loadKeysFile() {
-
-        PublicKey publicKey = null;
-
-
-        ObjectInputStream inputStream = null;
         try {
-            inputStream = new ObjectInputStream(new FileInputStream(pathKeyPublic));
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(pathKeyPublic));
 
-            publicKey = (PublicKey) inputStream.readObject();
+            byte[] dataRead = new byte[100];
+            inputStream.read(dataRead);
+            this.decryptSymmetricKey(dataRead);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try {
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(pathKeySymmetric));
+
+            this.symmetricKey = (SecretKeySpec) inputStream.readObject();
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            return false;
         }
-        return publicKey;
+
+        return true;
     }
 
     //FOR TESTING
 
     public static void main(String[] args) {
+
 
     }
 }
