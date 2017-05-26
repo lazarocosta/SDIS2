@@ -95,6 +95,8 @@ public class Login extends JFrame{
 						RowSpec.decode("default:grow"),
 						FormSpecs.RELATED_GAP_ROWSPEC,
 						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
 						FormSpecs.RELATED_GAP_ROWSPEC,});
 		this.getContentPane().setLayout(formLayout);
 
@@ -123,11 +125,16 @@ public class Login extends JFrame{
 		this.getContentPane().add(save_info_check, "2, 12, 3, 1, center, default");
 
 		JCheckBox local_check = new JCheckBox("Local connection");
-		getContentPane().add(local_check, "2, 18, center, default");
+		getContentPane().add(local_check, "2, 20, center, default");
 
 		bootstrap_input = new JTextField();
 		bootstrap_input.setColumns(15);
-		getContentPane().add(bootstrap_input, "4, 18, center, default");
+		getContentPane().add(bootstrap_input, "4, 20, center, default");
+
+		JLabel message_lbl = new JLabel();
+		message_lbl.setVisible(false);
+		this.getContentPane().add(message_lbl, "2, 18, 3, 1, center, default");
+		message_lbl.setHorizontalAlignment(SwingConstants.CENTER);
 
 		JButton login_btn = new JButton("Login");
 		login_btn.addMouseListener(new MouseAdapter() {
@@ -182,6 +189,10 @@ public class Login extends JFrame{
 									FileManager.frame.setVisible(true);
 									frame.dispose();
 								}
+							}
+							else{
+								message_lbl.setText("Could not login.");
+								message_lbl.setVisible(true);
 							}
 							closeProgressBarAndResumeLogin();
 						} catch (SQLException | ClassNotFoundException e1) {
