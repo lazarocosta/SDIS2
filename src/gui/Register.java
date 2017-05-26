@@ -79,6 +79,8 @@ public class Register extends JFrame{
 						RowSpec.decode("default:grow"),
 						FormSpecs.RELATED_GAP_ROWSPEC,
 						RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"),
 						FormSpecs.RELATED_GAP_ROWSPEC,});
 		this.getContentPane().setLayout(formLayout);
 
@@ -116,6 +118,11 @@ public class Register extends JFrame{
 		password_confirm_input.setColumns(15);
 		this.getContentPane().add(password_confirm_input, "2, 16");
 
+		JLabel message_lbl = new JLabel();
+		message_lbl.setVisible(false);
+		this.getContentPane().add(message_lbl, "2, 18");
+		message_lbl.setHorizontalAlignment(SwingConstants.CENTER);
+
 		JButton register_btn = new JButton("Register");
 		register_btn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -134,13 +141,25 @@ public class Register extends JFrame{
 						e1.printStackTrace();
 					}
 				}
+				else
+				{
+					if(password_input.getPassword().length < 8)
+						message_lbl.setText("Password has to be at least 8 characters long.");
+
+					if(!(password_input.getText().equals(password_confirm_input.getText())))
+						message_lbl.setText("Passwords do not match.");
+
+					message_lbl.setVisible(true);
+				}
 			}
 		});
 		register_btn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+
 			}
 		});
-		this.getContentPane().add(register_btn, "2, 18");
+		this.getContentPane().add(register_btn, "2, 20");
 	}
 
 }
