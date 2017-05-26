@@ -191,6 +191,7 @@ public class Login extends JFrame{
 								}
 							}
 							else{
+								Peer.connection.close();
 								message_lbl.setText("Could not login.");
 								message_lbl.setVisible(true);
 							}

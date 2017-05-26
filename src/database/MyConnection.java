@@ -11,6 +11,8 @@ public class MyConnection {
         Connection c = DriverManager
                 .getConnection("jdbc:postgresql://telmo20.ddns.net:5432/sdis",
                         "javaApp", "p5+Z`Hj;(qhV<eP;");
+
+        c.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         System.out.println("Opened database successfully");
         return c;
     }
