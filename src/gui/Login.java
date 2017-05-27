@@ -153,7 +153,8 @@ public class Login extends JFrame{
 							if(Users.isLoginCorrect(Peer.connection, email_input.getText(), password_input.getText())){
 								String email = email_input.getText();
 								Random r = new Random();
-								Peer.node = new Peer(email, r.nextInt(65535-1024)+1024);
+								Peer.email = email;
+								Peer.port = r.nextInt(65535-1024)+1024);
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
 								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
