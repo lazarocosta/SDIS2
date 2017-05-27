@@ -154,14 +154,14 @@ public class Login extends JFrame{
 								String email = email_input.getText();
 								Random r = new Random();
 								Peer.email = email;
-								Peer.port = r.nextInt(65535-1024)+1024);
+								Peer.port = r.nextInt(65535-1024)+1024;
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
 								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
 									ProgressBar.frame.setStatus("Initializing UDP listening...");
 									Peer.node.startListening();
 
-									if(!Peer.node.is_port_forwarded()){
+									if(!Peer.port_forwarded){
 										ProgressBar.frame.setStatus("Holepunching NAT...");
 										//Peer.node.udpHolePunch();
 									}

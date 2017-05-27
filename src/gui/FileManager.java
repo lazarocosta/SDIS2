@@ -145,7 +145,7 @@ public class FileManager extends JFrame {
 					if (JOptionPane.showConfirmDialog(null, params, "File privacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 						//BACKUP START
 						try {
-							int fileID = Files.insertNewFile(Peer.connection, Peer.node.getEmail(), uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
+							int fileID = Files.insertNewFile(Peer.connection, Peer.email, uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
 							System.out.println(fileID);
 
 							Thread backupThread = new Thread(){
@@ -233,7 +233,7 @@ public class FileManager extends JFrame {
 		updateFooter();
 		//DEBUG PEERS NA REDE
 		try {
-			Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
 			for(Serializable s : paulo){
 				System.out.println(s.toString());
 			}
@@ -245,9 +245,9 @@ public class FileManager extends JFrame {
 
 	private void updateFooter(){
 		try {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1) + " (" + Peer.node.getChord().retrieve(new Key("AVAILABLE")).size() + " Peers)");
+			footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " (" + Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
 		} catch (ServiceException e1) {
-			footer_lbl.setText(Peer.node.getEmail() + " , " + Peer.node.getIPAddress() + ":" + (Peer.node.getPort() + 1));
+			footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1));
 			e1.printStackTrace();
 		}
 	}
@@ -259,7 +259,7 @@ public class FileManager extends JFrame {
 				new DefaultMutableTreeNode("Files") {
 					{
 						try{
-							ArrayList<String[]> files = Files.getFileNames(Peer.connection, Peer.node.getEmail());
+							ArrayList<String[]> files = Files.getFileNames(Peer.connection, Peer.email);
 							fileIDs = new int[files.size()];
 							for(int i=0; i < files.size(); i++){
 								add(new DefaultMutableTreeNode(String.format("%-40s (%s)",files.get(i)[1],files.get(i)[2])));

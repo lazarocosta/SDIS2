@@ -26,7 +26,7 @@ public class Delete implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Set<Serializable> peersWFile = Peer.node.getChord().retrieve(new Key(this.fileID));
+			Set<Serializable> peersWFile = Peer.chord.retrieve(new Key(this.fileID));
 			for(Serializable peer : peersWFile){
 				System.out.println(peer.toString());
 			}

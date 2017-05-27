@@ -40,7 +40,7 @@ public class Delete implements Runnable {
             }
         }
         try {
-			Peer.node.getChord().remove(new Key(this.fileID), Peer.node.getIPAddress()+":"+Peer.node.getPort());
+			Peer.chord.remove(new Key(this.fileID), Peer.IPAddress+":"+Peer.port);
 		} catch (ServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
