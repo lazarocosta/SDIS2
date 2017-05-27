@@ -42,46 +42,31 @@ public class Peer{
 
 	public static Peer node = null;
 	public static Connection connection;
-	private String email = null;
-	private boolean local_connection = false;
-	private DatagramSocket udpSocket;
-	private boolean port_forwarded = false;
-	private String IPAddress = null;
-	private int port = 60000;
-	private GatewayDevice activeGW = new GatewayDevice();
-	private ChordImpl chord = null;//new ChordImpl();
-	private Listener listener;
-	private Thread listenerThread;
-	private SimpleURL simpleURL;
-	private SimpleURL dhtURL;
+	public static String email = null;
+	public static boolean local_connection = false;
+	public static DatagramSocket udpSocket;
+	public static boolean port_forwarded = false;
+	public static String IPAddress = null;
+	public static int port = 60000;
+	public static GatewayDevice activeGW = new GatewayDevice();
+	public static ChordImpl chord = null;//new ChordImpl();
+	public static Listener listener;
+	public static Thread listenerThread;
+	public static SimpleURL simpleURL;
+	public static SimpleURL dhtURL;
 
 	public static String protocolVersion = "1.0";
 	public static String serverID = "1";
-	public static String mcAddress = "224.0.0.1";
-	public static int mcPort = 9001;
-	public static String mdbAddress = "224.0.0.2";
-	public static int mdbPort = 9002;
-	public static String mdrAddress = "224.0.0.3";
-	public static int mdrPort = 9003;
-	public static String remoteObject = "peer" + serverID;
 	public static String path;
 	public static String dataPath;
-	public static String rdFile;
-	public static String mdFile;
 	public static long capacity = 0; //Capacity in bytes
 	public static long usedCapacity = 0; //Used space in bytes
-	public static boolean saveRD = false;
-	public static boolean checkRD = false;
-	public static ConcurrentHashMap<String,String> mdMap = new ConcurrentHashMap<String,String>();
-	public static ConcurrentHashMap<String,int[]> rdMap = new ConcurrentHashMap<String,int[]>();
-	public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
-	public static HashSet<String> deletedFiles = new HashSet<String>();
-
-	public Peer(String email, int port) {
-		this.email = email;
-		this.setPort(port);
-	}
-
+	//public static boolean saveRD = false;
+	//public static boolean checkRD = false;
+	//public static ConcurrentHashMap<String,String> mdMap = new ConcurrentHashMap<String,String>();
+	//public static ConcurrentHashMap<String,int[]> rdMap = new ConcurrentHashMap<String,int[]>();
+	//public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
+	//public static HashSet<String> deletedFiles = new HashSet<String>();
 
 	public void initialize(){		
 		path = "." + Utils.FS + serverID;
@@ -91,34 +76,12 @@ public class Peer{
 
 		System.out.println("Starting services...");
 
-		
-		/*try {
-			// Bind the remote object's stub in the registry
-			ClientAppListener clientAppListener = new ClientAppListener();
-
-			ClientInterface stub = (ClientInterface) UnicastRemoteObject.exportObject(clientAppListener, 0);
-			Registry registry = LocateRegistry.getRegistry();
-			registry.bind(remoteObject, stub);
-		} catch (RemoteException | AlreadyBoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-
-		if(protocolVersion.equals("2.0")){
-			RDChecker rdChecker = new RDChecker();
-			Thread rdCheckerThread = new Thread(rdChecker);
-			rdCheckerThread.start();
-		}
-
-		
-
 		System.out.println("Services running...");
 
 		System.out.println("Running configurations:");
 		System.out.println("Server ID: " + serverID);
 		System.out.println("Data Path: " + dataPath);
 		System.out.println("Max capacity: " + 0);
-		System.out.println("Remote Object Name: " + remoteObject);
 	}
 
 	public void startListening(){
@@ -412,7 +375,7 @@ public class Peer{
 		}
 	}
 
-	public int getPort() {
+	/*public int getPort() {
 		return port;
 	}
 
@@ -461,6 +424,6 @@ public class Peer{
 
 	public SimpleURL getSimpleURL() {
 		return simpleURL;
-	}
+	}*/
 
 }
