@@ -39,20 +39,15 @@ public class Delete implements Runnable {
                 e.printStackTrace();
             }
         }
-        try {
-			Peer.node.getChord().remove(new Key(this.fileID), Peer.node.getIPAddress()+":"+Peer.node.getPort());
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        Peer.chord.remove(new Key(this.fileID), Peer.IPAddress+":"+Peer.port);
         int chunkNo = 0;
-        int[] rds = Peer.rdMap.get(this.fileID + Utils.FS + chunkNo);
+        /*int[] rds = Peer.rdMap.get(this.fileID + Utils.FS + chunkNo);
         while (rds != null) {
             Peer.rdMap.remove(this.fileID + Utils.FS + chunkNo);
             Peer.rdDetailedMap.remove(this.fileID + Utils.FS + chunkNo);
             chunkNo++;
             rds = Peer.rdMap.get(this.fileID + Utils.FS + chunkNo);
         }
-        Peer.saveRD = true;
+        Peer.saveRD = true;*/
     }
 }

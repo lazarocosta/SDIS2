@@ -58,7 +58,7 @@ public final class Utils {
 	}
 
 	public static final boolean loadRD(){
-		try{
+		/*try{
 			FileInputStream fis = new FileInputStream(Peer.rdFile);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
 
@@ -75,11 +75,12 @@ public final class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
-		}
+		}*/
+		return false; //DELETE THIS
 	}
 
 	public static final boolean loadMD(){
-		try{
+		/*try{
 			FileInputStream fis = new FileInputStream(Peer.mdFile);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
 
@@ -95,11 +96,12 @@ public final class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
-		}
+		}*/
+		return false; //DELETE THIS
 	}
 
 	public static final boolean saveRD(){
-		try{
+		/*try{
 			PrintWriter writer = new PrintWriter(Peer.rdFile, "UTF-8");
 			Iterator it = Peer.rdMap.entrySet().iterator();
 			while (it.hasNext()) {
@@ -112,11 +114,12 @@ public final class Utils {
 			return true;
 		} catch (IOException e) {
 			return false;
-		}
+		}*/
+		return false; //DELETE THIS
 	}
 
 	public static final boolean writeMD(){
-		try{
+		/*try{
 			PrintWriter writer = new PrintWriter(Peer.mdFile, "UTF-8");
 			Iterator it = Peer.mdMap.entrySet().iterator();
 			while (it.hasNext()) {
@@ -128,7 +131,8 @@ public final class Utils {
 			return true;
 		} catch (IOException e) {
 			return false;
-		}
+		}*/
+		return false; //DELETE THIS
 	}
 
 	public static final boolean initFileSystem(){
@@ -154,18 +158,18 @@ public final class Utils {
 	}
 
 	public static LinkedHashMap<String, int[]> sortMostReplicated() {
-		List<Map.Entry<String, int[]>> list = new ArrayList<Map.Entry<String, int[]>>(Peer.rdMap.entrySet());
+		/*List<Map.Entry<String, int[]>> list = new ArrayList<Map.Entry<String, int[]>>(Peer.rdMap.entrySet());
 
 		Collections.sort(list, new Comparator<Map.Entry<String, int[]>>() {
 			public int compare(Map.Entry<String, int[]> a, Map.Entry<String, int[]> b) {
 				return Integer.compare((a.getValue()[1] - a.getValue()[0]),(b.getValue()[1] - b.getValue()[0]));
 			}
 		});
-
+*/
 		LinkedHashMap<String, int[]> result = new LinkedHashMap<String, int[]>();
-		for (Entry<String, int[]> entry : list) {
+		/*for (Entry<String, int[]> entry : list) {
 			result.put(entry.getKey(), entry.getValue());
-		}
+		}*/
 
 		return result;
 	}
@@ -192,4 +196,7 @@ public final class Utils {
 		return fileIds;
 	}
 
+	public static boolean restoreFileFromTmpFolder(String tmpFolderPath){
+		return true;
+	}
 }

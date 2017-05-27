@@ -36,7 +36,7 @@ public class GetChunk implements Runnable {
 
     @Override
     public void run() {
-        // TODO
+        /*// TODO
         //Check if you have chunk
         File f = new File(Peer.dataPath + Utils.FS + this.fileID + Utils.FS + this.chunkNumber);
         if (f.exists() && !f.isDirectory()) {
@@ -100,14 +100,14 @@ public class GetChunk implements Runnable {
                 e.printStackTrace();
             }
 
-        }
+        }*/
     }
 
     class ReceiveChunk implements Runnable {
 
         @Override
         public void run() {
-            try {
+            /*try {
                 InetAddress mdrGroup = InetAddress.getByName(Peer.mdrAddress);
                 MulticastSocket mdrSocket = new MulticastSocket(Peer.mdrPort);
                 byte[] receiveMsg = new byte[70000];
@@ -128,7 +128,7 @@ public class GetChunk implements Runnable {
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 //e.printStackTrace();
-            }
+            }*/
         }
     }
 

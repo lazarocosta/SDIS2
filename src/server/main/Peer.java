@@ -175,8 +175,8 @@ public class Peer{
 					//NO GATEWAY, FIND EXTERNAL IP
 					java.net.URL whatismyip = new java.net.URL("http://checkip.amazonaws.com");
 					BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-
-					Peer.node.setIPAddress(in.readLine());
+					
+					Peer.IPAddress = in.readLine();
 					System.out.println(IPAddress);
 					simpleURL = new SimpleURL(IPAddress, port);
 					udpSocket = new DatagramSocket(port);
@@ -197,14 +197,15 @@ public class Peer{
 				}
 
 				// choose the first active gateway for the tests
-				Peer.node.setActiveGW(gatewayDiscover.getValidGateway());
-				Peer.node.setIPAddress(Peer.node.getActiveGW().getExternalIPAddress());
+				Peer.activeGW = gatewayDiscover.getValidGateway();
+	
+				Peer.IPAddress = Peer.activeGW.getExternalIPAddress();
 				simpleURL = new SimpleURL(IPAddress, port);
 				dhtURL = new SimpleURL(IPAddress, port + 1);
 				udpSocket = new DatagramSocket(port);
 
-				if (null != Peer.node.getActiveGW()) {
-					System.out.println("Using gateway: " + Peer.node.getActiveGW().getFriendlyName());
+				if (null != Peer.activeGW) {
+					System.out.println("Using gateway: " + Peer.activeGW.getFriendlyName());
 				} else {
 					System.out.println("No active gateway device found");
 					System.out.println("Stopping weupnp");
@@ -213,38 +214,38 @@ public class Peer{
 
 
 				// testing PortMappingNumberOfEntries
-				Integer portMapCount = Peer.node.getActiveGW().getPortMappingNumberOfEntries();
+				Integer portMapCount = Peer.activeGW.getPortMappingNumberOfEntries();
 				System.out.println("GetPortMappingNumberOfEntries: " + (portMapCount!=null?portMapCount.toString():"(unsupported)"));
 
 				// testing getGenericPortMappingEntry
 				PortMappingEntry portMapping = new PortMappingEntry();
-				if (Peer.node.getActiveGW().getGenericPortMappingEntry(0,portMapping))
+				if (Peer.activeGW.getGenericPortMappingEntry(0,portMapping))
 					System.out.println("Portmapping #0 successfully retrieved ("+portMapping.getPortMappingDescription()+":"+portMapping.getExternalPort()+")");
 				else
 					System.out.println("Portmapping #0 retrival failed");
 
-				InetAddress localAddress = Peer.node.getActiveGW().getLocalAddress();
+				InetAddress localAddress = Peer.activeGW.getLocalAddress();
 				System.out.println("Using local address: "+ localAddress.getHostAddress());
-				String externalIPAddress = Peer.node.getActiveGW().getExternalIPAddress();
+				String externalIPAddress = Peer.activeGW.getExternalIPAddress();
 				System.out.println("External address: "+ externalIPAddress);
 
-				System.out.println("Querying device to see if a port mapping already exists for port "+ Peer.node.getPort());
+				System.out.println("Querying device to see if a port mapping already exists for port "+ Peer.port);
 
 
-				if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"UDP",portMapping)) {
-					System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
-					if (Peer.node.getActiveGW().getSpecificPortMappingEntry(Peer.node.getPort(),"TCP",portMapping)) {
-						System.out.println("Port "+Peer.node.getPort()+" is already mapped. Aborting test.");
+				if (Peer.activeGW.getSpecificPortMappingEntry(Peer.port,"UDP",portMapping)) {
+					System.out.println("Port "+Peer.port+" is already mapped. Aborting test.");
+					if (Peer.activeGW.getSpecificPortMappingEntry(Peer.port,"TCP",portMapping)) {
+						System.out.println("Port "+Peer.port+" is already mapped. Aborting test.");
 					}
 				}
 
-				System.out.println("Mapping free. Sending port mapping request for port "+Peer.node.getPort());
+				System.out.println("Mapping free. Sending port mapping request for port "+Peer.port);
 
 				// test static lease duration mapping
-				if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
+				if (Peer.activeGW.addPortMapping(Peer.port,Peer.port,localAddress.getHostAddress(),"UDP","P2P Cloud (UDP)")) {
 					System.out.println("Mapping UDP SUCCESSFUL.");
 
-					if (Peer.node.getActiveGW().addPortMapping(Peer.node.getPort(),Peer.node.getPort(),localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
+					if (Peer.activeGW.addPortMapping(Peer.port,Peer.port,localAddress.getHostAddress(),"TCP","P2P Cloud (TCP)")) {
 						System.out.println("Mapping TCP SUCCESSFUL.");
 						port_forwarded = true;
 					}
@@ -353,8 +354,7 @@ public class Peer{
 	 * @return
 	 */
 	public void udpHolePunch(){
-		try {
-			Set<Serializable> paulo = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
 			byte[] b2 = "Hello".getBytes();
 			byte[] b1 = new byte[6];
 			System.arraycopy(b2, 0, b1, 0, b2.length);
@@ -369,10 +369,6 @@ public class Peer{
 					e.printStackTrace();
 				}
 			}
-		} catch (ServiceException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 	}
 
 	/*public int getPort() {

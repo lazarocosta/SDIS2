@@ -1,4 +1,4 @@
-package server.task.initiatorPeer;
+package server.protocol;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -25,8 +25,7 @@ public class Delete implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			Set<Serializable> peersWFile = Peer.node.getChord().retrieve(new Key(this.fileID));
+			Set<Serializable> peersWFile = Peer.chord.retrieve(new Key(this.fileID));
 			for(Serializable peer : peersWFile){
 				System.out.println(peer.toString());
 			}
@@ -50,13 +49,6 @@ public class Delete implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			/*if (this.protocolVersion.equals("2.0")) {
-				Peer.deletedFiles.add(this.fileID);
-			}*/
 
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }
