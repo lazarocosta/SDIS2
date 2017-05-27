@@ -17,7 +17,7 @@ public class Listener implements Runnable {
 			byte[] buf = new byte[70000];
 			DatagramPacket receivedCmd = new DatagramPacket(buf, buf.length);
 			while (!Thread.currentThread().isInterrupted()) {
-				Peer.node.getUDPSocket().receive(receivedCmd);
+				Peer.udpSocket.receive(receivedCmd);
 				String cmdSplit[] = new String(receivedCmd.getData(), receivedCmd.getOffset(), receivedCmd.getLength()).split("\\s+");
 				if (cmdSplit[1].equals("1.0") || cmdSplit[1].equals(Peer.protocolVersion)) { //Always accept messages with version 1.0 but only accepts with version 2.0 if the running protocolVersion is also 2.0
 					System.out.println(cmdSplit[0]);
@@ -58,7 +58,7 @@ public class Listener implements Runnable {
 								body
 								)).start();*/
 					} else if (cmdSplit[0].equals("PUTCHUNK?")){
-						System.out.println("RECEBI PEDIDO CONEXÃO TCP DE:" + cmdSplit[2]);
+						System.out.println("RECEBI PEDIDO CONEXï¿½O TCP DE:" + cmdSplit[2]);
 						//TODO confirmar se pode mesmo se ligar para receber
 						//Passar para outra funcao
 						SimpleURL url = new SimpleURL(cmdSplit[3]);
@@ -69,7 +69,7 @@ public class Listener implements Runnable {
 								url.getPort()
 								)).start();
 					}else if (cmdSplit[0].equals("GETCHUNK?")){
-						System.out.println("RECEBI PEDIDO CONEXÃO TCP DE:" + cmdSplit[2]);
+						System.out.println("RECEBI PEDIDO CONEXï¿½O TCP DE:" + cmdSplit[2]);
 						//TODO confirmar se pode mesmo se ligar para receber
 						//Passar para outra funcao
 						SimpleURL url = new SimpleURL(cmdSplit[3]);

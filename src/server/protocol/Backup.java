@@ -129,12 +129,12 @@ public class Backup {
 			byte[] availableMsg = new String("PUTCHUNK?" + Utils.Space
 					+ "1.0" + Utils.Space
 					+ fileID + Utils.Space
-					+ Peer.node.getSimpleURL().toString() + Utils.Space
+					+ Peer.simpleURL.toString() + Utils.Space
 					+ Utils.CRLF + Utils.CRLF).getBytes();
 
-			Set<Serializable> availablePeers = Peer.node.getChord().retrieve(new Key("AVAILABLE"));
+			Set<Serializable> availablePeers = Peer.chord.retrieve(new Key("AVAILABLE"));
 
-			ServerSocket ss = new ServerSocket(Peer.node.getPort());
+			ServerSocket ss = new ServerSocket(Peer.port);
 
 			Thread t = new Thread(){
 				public void run() {
@@ -154,11 +154,11 @@ public class Backup {
             try {
                 //DatagramSocket clientSocket = new DatagramSocket();
                 for (Serializable peer : availablePeers) {
-                    if (!Peer.node.getSimpleURL().equals(peer)) {
+                    if (!Peer.simpleURL.equals(peer)) {
                         System.out.println("vou mandar");
                         InetAddress IPAddress = InetAddress.getByName(((SimpleURL) peer).getIpAddress());
                         DatagramPacket sendPacket = new DatagramPacket(availableMsg, availableMsg.length, IPAddress, ((SimpleURL) peer).getPort());
-                        Peer.node.getUDPSocket().send(sendPacket);
+                        Peer.udpSocket.send(sendPacket);
                     }
                 }
                 //clientSocket.close();
