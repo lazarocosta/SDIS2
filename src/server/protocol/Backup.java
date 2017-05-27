@@ -19,7 +19,6 @@ import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import security.HybridEncryption;
 import server.main.Peer;
-import server.task.initiatorPeer.PutChunk;
 import utils.SimpleURL;
 import utils.Utils;
 
@@ -175,7 +174,7 @@ public class Backup {
             }
             t.interrupt();
             ss.close();
-        } catch (ServiceException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return result;

@@ -231,25 +231,14 @@ public class FileManager extends JFrame {
 	protected void refresh() {
 		tree.setModel(buildTreeModel());
 		updateFooter();
-		//DEBUG PEERS NA REDE
-		try {
-			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
-			for(Serializable s : paulo){
-				System.out.println(s.toString());
-			}
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
+		for(Serializable s : paulo){
+			System.out.println(s.toString());
 		}
 	}
 
 	private void updateFooter(){
-		try {
-			footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " (" + Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
-		} catch (ServiceException e1) {
-			footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1));
-			e1.printStackTrace();
-		}
+		footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " (" + Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
 	}
 
 
@@ -301,7 +290,7 @@ public class FileManager extends JFrame {
 					//RESTORE START
 						Thread restoreThread = new Thread(){
 							public void run(){
-								new Restore("1.0", "" +fileID, selectFolder.getCurrentDirectory());
+								//new Restore("1.0", "" +fileID, selectFolder.getCurrentDirectory());
 							}
 						};
 						restoreThread.start();

@@ -25,7 +25,7 @@ import java.util.Set;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
-import server.task.initiatorPeer.GetChunk;
+//import server.task.initiatorPeer.GetChunk;
 import utils.SimpleURL;
 import utils.Utils;
 
@@ -57,7 +57,7 @@ public class Restore {
 			}
 		}
 
-		//hashmap com ligação tcp e arraylist de chunks por ligacao
+		//hashmap com ligaï¿½ï¿½o tcp e arraylist de chunks por ligacao
 		HashMap<Socket, ArrayList<Integer>> availableChunks = new HashMap<Socket, ArrayList<Integer>>();
 		for(Socket s:availableConnections){
 			new Thread(){
@@ -84,7 +84,7 @@ public class Restore {
 			}.start();
 		}
 		//aguarda algum tempo para ja ter peers que responderam
-		//ao usar threads garantimos que peers mais lentos a responder também serão usados
+		//ao usar threads garantimos que peers mais lentos a responder tambï¿½m serï¿½o usados
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
@@ -193,7 +193,7 @@ public class Restore {
 			}
 			t.interrupt();
 			ss.close();
-		} catch (ServiceException | IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return result;

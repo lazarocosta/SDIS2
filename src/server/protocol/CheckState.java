@@ -17,27 +17,27 @@ public class CheckState {
         state += "| BACKED UP FILES                                                         |\n";
         state += "---------------------------------------------------------------------------\n";
 
-        Iterator it = Peer.mdMap.entrySet().iterator();
-        while (it.hasNext()) {
+        //Iterator it = Peer.mdMap.entrySet().iterator();
+        /*while (it.hasNext()) {
             HashMap.Entry<String, String> pair = (HashMap.Entry) it.next();
             String FilePath = pair.getKey();
             String FileId = pair.getValue();
             state += "  Path  : " + FilePath + "\n";
             state += "  ID    : " + FileId + "\n";
-            state += "  RD    : " + Peer.rdMap.get(FileId + Utils.FS + 0)[0] + "\n";
+            //state += "  RD    : " + Peer.rdMap.get(FileId + Utils.FS + 0)[0] + "\n";
             state += "  Chunks:" + "\n";
             state += "    | ID      | RD |" + "\n";
             int chunkNo = 0;
-            int[] rds = Peer.rdMap.get(FileId + Utils.FS + chunkNo);
+            //int[] rds = Peer.rdMap.get(FileId + Utils.FS + chunkNo);
             while (rds != null) {
                 state += "    | " + String.format("%" + -8 + "s", chunkNo) +
                         "| " + String.format("%" + -3 + "s", rds[1]) +
                         "|\n";
                 chunkNo++;
-                rds = Peer.rdMap.get(FileId + Utils.FS + chunkNo);
+                //rds = Peer.rdMap.get(FileId + Utils.FS + chunkNo);
             }
             state += "---------------------------------------------------------------------------\n";
-        }
+        }*/
         state += "| STORED FILES                                                            |\n";
         state += "---------------------------------------------------------------------------\n";
 
@@ -53,7 +53,7 @@ public class CheckState {
                 File chunk = new File(Peer.dataPath + Utils.FS + file + Utils.FS + chunkNumber);
                 state += "    | " + String.format("%" + -8 + "s", chunkNumber) +
                         "| " + String.format("%" + -3 + "s", chunk.length() / 1000) +
-                        "| " + String.format("%" + -3 + "s", Peer.rdMap.get(file + Utils.FS + chunkNumber)[1]) +
+                        //"| " + String.format("%" + -3 + "s", Peer.rdMap.get(file + Utils.FS + chunkNumber)[1]) +
                         "|\n";
             }
         }
