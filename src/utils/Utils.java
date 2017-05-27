@@ -192,4 +192,7 @@ public final class Utils {
 		return fileIds;
 	}
 
+	public static boolean restoreFileFromTmpFolder(String tmpFolderPath){
+		return true;
+	}
 }

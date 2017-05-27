@@ -16,6 +16,7 @@ CREATE TABLE files (
 	file_id		serial PRIMARY KEY,
 	user_id		integer REFERENCES users(user_id),
 	name		text NOT NULL,
+	size		integer NOT NULL,
 	added_time	timestamp DEFAULT current_timestamp,
 	public		boolean	DEFAULT false
 );

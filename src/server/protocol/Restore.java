@@ -3,6 +3,7 @@ package server.protocol;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,6 +15,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,21 +31,34 @@ import utils.Utils;
 
 public class Restore {
 
-	public Restore(String protocolVersion, String fileID, String destDir) {
-		int chunkNumber = 0;
+	private boolean[] receivedChunks;
+
+	public Restore(String protocolVersion, String fileID, int fileSize, String destDir) {
+
+		//cria tmpFolder
+		String tmpFolderPath = Peer.dataPath + Utils.FS + fileID + Utils.FS + "tmp";
+		File dir = new File(tmpFolderPath);
+		dir.mkdirs();
+
 		//TODO ver se o proprio peer nao tem nenhum chunk
 		ArrayList<Socket> availableConnections = getAvailablePeers(fileID);
 
+		//Pede numero dos chunks que peers tenham
 		for(Socket s:availableConnections){
+			try {
 			DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
-			outToServer.writeBytes(new String("GETCHUNKS" + Utils.Space
-					+ protocolVersion + Utils.Space
-					+ fileID + Utils.Space
-					+ Utils.CRLF));
+				outToServer.writeBytes(new String("GETCHUNKS" + Utils.Space
+						+ protocolVersion + Utils.Space
+						+ fileID + Utils.Space
+						+ Utils.CRLF));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		
-		HashMap<Socket, List<Integer>> availableChunks = new HashMap<Socket, List<Integer>>();
-		
+
+		//hashmap com ligação tcp e arraylist de chunks por ligacao
+		HashMap<Socket, ArrayList<Integer>> availableChunks = new HashMap<Socket, ArrayList<Integer>>();
 		for(Socket s:availableConnections){
 			new Thread(){
 				public void run() {
@@ -52,7 +67,15 @@ public class Restore {
 							DataInputStream dis = new DataInputStream(s.getInputStream());
 							String header = dis.readLine();
 							System.out.println("Received: " + header);
-							List<Integer> chunks = Arrays.asList(Arrays.stream(new String(header).split("\\s+")).mapToInt(Integer::parseInt).toArray());
+							String[] strChunks = new String(header).split("\\s+");
+							ArrayList<Integer> chunks = new ArrayList<Integer>();
+							for(String strChunk : strChunks){
+								chunks.add(Integer.parseInt(strChunk));
+							}
+							availableChunks.put(s, chunks);
+
+							//TODO falta fechar somewhere
+							new Thread(new ChunkReceiver(tmpFolderPath, s)).start();
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -60,63 +83,56 @@ public class Restore {
 				}
 			}.start();
 		}
-		
-		Thread.sleep(5000);
+		//aguarda algum tempo para ja ter peers que responderam
+		//ao usar threads garantimos que peers mais lentos a responder também serão usados
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		try {
-			InputStream in = new FileInputStream(f);
 
 			//Number of Chunks needed for the file
-			int numChunks = (int)(fileLength/64000)+1;
+			int numChunks = (int)(fileSize/64000)+1;
 			//Size of the last chunk
-			int lastChunkSize = (int)(fileLength%64000);
+			int lastChunkSize = (int)(fileSize%64000);
+			//Arrays of chunks received (default all false)
+			receivedChunks = new boolean[numChunks];
 
-			//Create chunks and call PutChunks threads
-			for(int i = 0;i < numChunks;i++){
-				int numBytesRead = 0;
-				//Special case 'Last Chunk'
-				if(i == numChunks-1){
-					chunk = new byte[lastChunkSize];
-					//Only reads if the size of the last Chunk is not 0, special case from multiples of 64000 in the file sizes
-					if(lastChunkSize != 0){
-						numBytesRead = in.read(chunk, 0, lastChunkSize);
+			//pedir chunks aos users
+			boolean allReceived = true;
+			for(Socket s:availableConnections){
+				allReceived = true;
+				for(boolean b : receivedChunks){
+					if(!b){
+						allReceived = false;
+						break;
 					}
-				}else numBytesRead = in.read(chunk, 0, 64000);
-
-				//BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				for(Socket s:availableConnections){
-					DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
-					//sentence = inFromUser.readLine();
-					outToServer.writeBytes(new String("PUTCHUNK" + Utils.Space
-							+ protocolVersion + Utils.Space
-							+ fileID + Utils.Space
-							+ i + Utils.Space
-							+ numBytesRead + Utils.Space
-							+ Utils.CRLF));
-					outToServer.write(chunk, 0, numBytesRead);
-					outToServer.flush();
-					//modifiedSentence = inFromServer.readLine();
-					//System.out.println("FROM SERVER: " + modifiedSentence);
 				}
+				if(!allReceived){
+					ArrayList<Integer> chunksOfConnection = availableChunks.get(s);
+					if(!chunksOfConnection.isEmpty()){
+						while(!chunksOfConnection.isEmpty() && receivedChunks[chunksOfConnection.get(0)]){
+							chunksOfConnection.remove(0);
+						}
 
-
-				/*Thread putChunkThread = new Thread(new PutChunk(
-						protocolVersion,
-						fileID,
-						i,
-						replicationDeg,
-						chunk
-						));
-				putChunkThread.start();*/
-				/*try {
-					putChunkThread.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
+						DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
+						outToServer.writeBytes(new String("GETCHUNK" + Utils.Space
+								+ protocolVersion + Utils.Space
+								+ fileID + Utils.Space
+								+ chunksOfConnection.get(0) + Utils.Space
+								+ Utils.CRLF));
+						outToServer.flush();
+					}
+				}else{
+					break;
+				}
 			}
+			
+			Utils.restoreFileFromTmpFolder(tmpFolderPath);
 
-			in.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -181,66 +197,47 @@ public class Restore {
 			e.printStackTrace();
 		}
 		return result;
-		//RD
-		//InetAddress IPAddress = InetAddress.getByName(Peer.mdbAddress);
-		//DatagramPacket sendPacket = new DatagramPacket(header, header.length, IPAddress, Peer.mdbPort);
+	}
 
-		/*for (int i = 1; i <= 5; i++) {
-            Peer.node.udpSocket.send(sendPacket);
-            Thread.sleep(400 * i);
-            rds = Peer.rdMap.get(this.fileID + Utils.FS + this.chunkNo);
-            if (rds != null && rds[0] <= rds[1]) {
-                break;
-            }
-        }*/
+	private class ChunkReceiver implements Runnable{
+
+		private String tmpFolderPath;
+		private Socket socket;
+
+		public ChunkReceiver(String tmpFolderPath, Socket socket){
+			this.tmpFolderPath = tmpFolderPath;
+			this.socket = socket;
+		}
+
+		@Override
+		public void run() {
+			try {
+				while(true){
+					DataInputStream dis = new DataInputStream(socket.getInputStream());
+					String header = dis.readLine();
+					System.out.println("Received: " + header);
+					String cmdSplit[] = new String(header).split("\\s+");
+					int chunkNumber = Integer.parseInt(cmdSplit[3]);
+					int size = Integer.parseInt(cmdSplit[4]);
+					byte[] body = new byte[size];
+					dis.readFully(body);
+
+					try {	File f = new File(tmpFolderPath + Utils.FS + chunkNumber);
+							f.createNewFile();
+							Files.write(f.toPath(), body);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					receivedChunks[chunkNumber] = true;
+
+					System.out.println("Received body with size: " + body.length);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 }
-//String fileId = Peer.mdMap.get(filePath);
-/*OutputStream output = null;
-
-        if (fileId != null) {
-            try {
-                output = new BufferedOutputStream(new FileOutputStream(filePath));
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            byte[] chunk = null;
-            do {
-                GetChunk getChunk = new GetChunk(
-                        protocolVersion,
-                        fileId,
-                        chunkNumber);
-                Thread getChunkThread = new Thread(getChunk);
-                getChunkThread.start();
-
-                try {
-                    getChunkThread.join();
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    break;
-                }
-                chunk = getChunk.getChunk();
-                if (chunk != null) {
-                    try {
-                        output.write(chunk, 0, chunk.length);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                } else {
-                    break;
-                }
-
-                chunkNumber++;
-            } while (chunk.length == 64000);
-            try {
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-}*/
