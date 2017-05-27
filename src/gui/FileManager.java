@@ -40,7 +40,7 @@ import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
 import server.protocol.Backup;
-import server.task.initiatorPeer.Delete;
+import server.protocol.Delete;
 
 public class FileManager extends JFrame {
 

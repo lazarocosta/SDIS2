@@ -354,7 +354,6 @@ public class Peer{
 	 * @return
 	 */
 	public void udpHolePunch(){
-		try {
 			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
 			byte[] b2 = "Hello".getBytes();
 			byte[] b1 = new byte[6];
@@ -370,10 +369,6 @@ public class Peer{
 					e.printStackTrace();
 				}
 			}
-		} catch (ServiceException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 	}
 
 	/*public int getPort() {
