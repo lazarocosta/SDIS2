@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class UsersKeys {
 
-    public static boolean insertUserKey(Connection c, int iduser, byte[] asymmetrickeyprivate, byte[] asymmetrickeypublic,byte[] symmetricKey) throws SQLException {
+    public static boolean insertUserKey(Connection c, int iduser, byte[] asymmetrickeyprivate, byte[] asymmetrickeypublic, byte[] symmetricKey) throws SQLException {
         PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.userskeys(assymmetrickeyprivate,assymmetrickeypublic, symmetrickey,user_id) VALUES (?, ?, ?,?)");
         preparedStatement.setBytes(1, asymmetrickeyprivate);
         preparedStatement.setBytes(2, asymmetrickeypublic);
@@ -28,11 +28,10 @@ public class UsersKeys {
         ResultSet rs = preparedStatement.executeQuery();
 
 
-        if(!rs.next()) {
+        if (!rs.next()) {
             System.out.println("Not loaded the database keys");
             return null;
-        }
-        else {
+        } else {
             System.out.println("loaded the database keys successfully ");
             return rs;
         }
