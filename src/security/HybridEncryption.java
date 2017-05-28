@@ -34,7 +34,7 @@ public class HybridEncryption {
             this.asymmetricKeyPublic = keyPair.getPublic();
             this.asymmetricKeyPrivate = keyPair.getPrivate();
             this.symmetricKey = Encryptor.generateSymmetricKey();
-            this.iv = Encryptor.generateIV();
+            this.iv = new IvParameterSpec(symmetricKey.getEncoded());
 
 
             System.out.println("generate keys completed");
@@ -61,7 +61,6 @@ public class HybridEncryption {
         }
     }
 
-
     public byte[] encrypt(byte[] value) {
         return Encryptor.encryptAES(this.symmetricKey, this.iv, value);
     }
@@ -76,6 +75,7 @@ public class HybridEncryption {
 
     public void decryptSymmetricKey(byte[] key) {
         this.symmetricKey = new SecretKeySpec(Encryptor.decryptRSA(asymmetricKeyPrivate, key), "AES");
+        this.iv = new IvParameterSpec(symmetricKey.getEncoded());
     }
 
     public PublicKey getAsymmetricPublicKey() {
