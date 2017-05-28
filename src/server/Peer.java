@@ -29,12 +29,13 @@ import org.bitlet.weupnp.PortMappingEntry;
 import org.xml.sax.SAXException;
 
 import database.Files;
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.data.URL;
+import de.uniba.wiai.lspi.chord.service.PropertiesLoader;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 import server.commonPeer.Listener;
 import utils.SimpleURL;
+import utils.StringKey;
 import utils.Utils;
 
 public class Peer{
@@ -84,7 +85,7 @@ public class Peer{
 	public static void safeClose(){
 		listenerThread.interrupt();
 		udpSocket.close();
-		chord.remove(new Key("AVAILABLE"), simpleURL);
+		chord.remove(new StringKey("AVAILABLE"), simpleURL);
 		chord.leave();
 		if(!local_connection){
 			try {
@@ -256,7 +257,12 @@ public class Peer{
 	 * @param bootstrap URL of existing network, null to create a new network
 	 */
 	public static boolean joinChordNetwork(String bootstrap){
-		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
+		//load chord properties if not loaded
+		try{
+			PropertiesLoader.loadPropertyFile ();
+		}catch(IllegalStateException e){
+			e.printStackTrace();
+		}
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
 		try {
@@ -277,19 +283,19 @@ public class Peer{
 			chord = new ChordImpl();
 			try {
 				chord.join(localURL , bootstrapURL);
-				chord.insert(new Key("AVAILABLE"), simpleURL);
+				chord.insert(new StringKey("AVAILABLE"), simpleURL);
 				return true;
 			} catch (ServiceException e) {
 				e.printStackTrace();
 				try {
 					chord.join(localURL , bootstrapURL);
-					chord.insert(new Key("AVAILABLE"), simpleURL);
+					chord.insert(new StringKey("AVAILABLE"), simpleURL);
 					return true;
 				} catch (ServiceException e1) {
 					e1.printStackTrace();
 					try {
 						chord.join(localURL , bootstrapURL);
-						chord.insert(new Key("AVAILABLE"), simpleURL);
+						chord.insert(new StringKey("AVAILABLE"), simpleURL);
 						return true;
 					} catch (ServiceException e2) {
 						e2.printStackTrace();
@@ -357,7 +363,7 @@ public class Peer{
 		String[] fileIDs = dir.list();
 		for (String fileID : fileIDs) {
 			System.out.println(fileID);
-			chord.insertAsync(new Key(fileID), simpleURL);
+			chord.insertAsync(new StringKey(fileID), simpleURL);
 		}
 
 	}
@@ -367,7 +373,7 @@ public class Peer{
 	 * @return
 	 */
 	public static void udpHolePunch(){
-		Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
+		Set<Serializable> paulo = Peer.chord.retrieve(new StringKey("AVAILABLE"));
 		byte[] b2 = "Hello".getBytes();
 		byte[] b1 = new byte[6];
 		System.arraycopy(b2, 0, b1, 0, b2.length);

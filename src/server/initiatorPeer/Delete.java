@@ -7,9 +7,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Set;
 
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
 import utils.SimpleURL;
+import utils.StringKey;
 import utils.Utils;
 
 public class Delete implements Runnable {
@@ -24,7 +24,7 @@ public class Delete implements Runnable {
 
 	@Override
 	public void run() {
-		Set<Serializable> peersWFile = Peer.chord.retrieve(new Key(this.fileID));
+		Set<Serializable> peersWFile = Peer.chord.retrieve(new StringKey(this.fileID));
 		for (Serializable peer : peersWFile) {
 			System.out.println(peer.toString());
 		}

@@ -13,9 +13,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
 
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
 import utils.SimpleURL;
+import utils.StringKey;
 import utils.Utils;
 
 public class Backup {
@@ -90,7 +90,7 @@ public class Backup {
 					+ Peer.simpleURL.toString() + Utils.Space
 					+ Utils.CRLF + Utils.CRLF).getBytes();
 
-			Set<Serializable> availablePeers = Peer.chord.retrieve(new Key("AVAILABLE"));
+			Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey("AVAILABLE"));
 
 			//TODO criacao de serversocket
 			ServerSocket ss = new ServerSocket(Peer.port);

@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
 //import server.task.initiatorPeer.GetChunk;
 import utils.SimpleURL;
+import utils.StringKey;
 import utils.Utils;
 
 public class Restore {
@@ -156,7 +156,7 @@ public class Restore {
 			byte[] availableMsg = new String("GETCHUNK?" + Utils.Space + "1.0" + Utils.Space + fileID + Utils.Space
 					+ Peer.simpleURL.toString() + Utils.Space + Utils.CRLF + Utils.CRLF).getBytes();
 
-			Set<Serializable> availablePeers = Peer.chord.retrieve(new Key(fileID));
+			Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey(fileID));
 
 			// TODO criacao de socket
 			ServerSocket ss = new ServerSocket(Peer.port);
@@ -177,7 +177,6 @@ public class Restore {
 
 			t.start();
 			try {
-				// DatagramSocket clientSocket = new DatagramSocket();
 				for (Serializable peer : availablePeers) {
 					if (!Peer.simpleURL.equals(peer)) {
 						InetAddress IPAddress = InetAddress.getByName(((SimpleURL) peer).getIpAddress());
@@ -186,7 +185,6 @@ public class Restore {
 						Peer.udpSocket.send(sendPacket);
 					}
 				}
-				// clientSocket.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

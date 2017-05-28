@@ -37,11 +37,11 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import database.Files;
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
 import server.initiatorPeer.Backup;
 import server.initiatorPeer.Delete;
 import server.initiatorPeer.Restore;
+import utils.StringKey;
 
 @SuppressWarnings("serial")
 public class FileManager extends JFrame {
@@ -232,7 +232,7 @@ public class FileManager extends JFrame {
 	protected void refresh() {
 		tree.setModel(buildTreeModel());
 		updateFooter();
-		Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
+		Set<Serializable> paulo = Peer.chord.retrieve(new StringKey("AVAILABLE"));
 		for (Serializable s : paulo) {
 			System.out.println(s.toString());
 		}
@@ -240,7 +240,7 @@ public class FileManager extends JFrame {
 
 	private void updateFooter() {
 		footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " ("
-				+ Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
+				+ Peer.chord.retrieve(new StringKey("AVAILABLE")).size() + " Peers)");
 	}
 
 	private DefaultTreeModel buildTreeModel() {

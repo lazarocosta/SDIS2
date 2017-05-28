@@ -25,6 +25,12 @@ public class SimpleURL implements Serializable {
 	public String toString() {
 		return ipAddress + ":" + port;
 	}
+	
+	 public int hashCode(){
+
+	        return ipAddress.hashCode() ^ port;
+	    }
+
 
 	@Override
 	public boolean equals(Object obj) {

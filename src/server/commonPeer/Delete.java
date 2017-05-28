@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
+import utils.StringKey;
 import utils.Utils;
 
 public class Delete implements Runnable {
@@ -39,6 +39,6 @@ public class Delete implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		Peer.chord.remove(new Key(this.fileID), Peer.IPAddress + ":" + Peer.port);
+		Peer.chord.remove(new StringKey(this.fileID), Peer.IPAddress + ":" + Peer.port);
 	}
 }

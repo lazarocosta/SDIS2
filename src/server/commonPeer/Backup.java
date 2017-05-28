@@ -7,8 +7,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 
-import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import server.Peer;
+import utils.StringKey;
 import utils.Utils;
 
 public class Backup implements Runnable {
@@ -30,10 +30,11 @@ public class Backup implements Runnable {
 	public void run() {
 		File dir = new File(Peer.dataPath + Utils.FS + this.fileID);
 		dir.mkdirs();
-		Peer.chord.insert(new Key(this.fileID), Peer.simpleURL.toString());
+		Peer.chord.insert(new StringKey(this.fileID), Peer.simpleURL);
+		Socket s = null;
 		try {
 			// TODO criacao de socket
-			Socket s = new Socket(InetAddress.getByName(this.ipAddress), this.port);
+			s = new Socket(InetAddress.getByName(this.ipAddress), this.port);
 			while (true) {
 				DataInputStream dis = new DataInputStream(s.getInputStream());
 				@SuppressWarnings("deprecation")
@@ -60,6 +61,12 @@ public class Backup implements Runnable {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			try {
+				s.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 	}
 
