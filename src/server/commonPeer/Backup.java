@@ -30,7 +30,7 @@ public class Backup implements Runnable {
 	public void run() {
 		File dir = new File(Peer.dataPath + Utils.FS + this.fileID);
 		dir.mkdirs();
-		Peer.chord.insert(new StringKey(this.fileID), Peer.simpleURL);
+		Peer.chord.insertAsync(new StringKey(this.fileID), Peer.simpleURL);
 		Socket s = null;
 		try {
 			// TODO criacao de socket
