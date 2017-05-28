@@ -18,6 +18,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+@SuppressWarnings("serial")
 public class ProgressBar extends JDialog {
 
 	public static ProgressBar frame;
@@ -45,21 +46,15 @@ public class ProgressBar extends JDialog {
 		this.setTitle("P2P Cloud");
 		this.setResizable(false);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setSize(dim.width/3,dim.height/3);
-		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+		this.setSize(dim.width / 3, dim.height / 3);
+		this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-				new RowSpec[] {
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,});
+		FormLayout formLayout = new FormLayout(
+				new ColumnSpec[] { FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, },
+				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, });
 		this.getContentPane().setLayout(formLayout);
 
 		status_lbl = new JLabel("Status");
@@ -81,7 +76,7 @@ public class ProgressBar extends JDialog {
 
 	}
 
-	public void setStatus(String status){
+	public void setStatus(String status) {
 		this.status_lbl.setText(status);
 	}
 

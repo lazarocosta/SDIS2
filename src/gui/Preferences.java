@@ -17,11 +17,13 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
-import server.main.Peer;
+import server.Peer;
 
-public class Preferences extends JFrame{
-	
+@SuppressWarnings("serial")
+public class Preferences extends JFrame {
+
 	public static Preferences frame;
+
 	/**
 	 * Create the application.
 	 */
@@ -46,41 +48,26 @@ public class Preferences extends JFrame{
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		this.setType(Type.UTILITY);
-		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-			new RowSpec[] {
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_ROWSPEC,});
+		FormLayout formLayout = new FormLayout(
+				new ColumnSpec[] { FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, },
+				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, });
 		this.getContentPane().setLayout(formLayout);
-		
+
 		JLabel port_lbl = new JLabel("Port");
 		getContentPane().add(port_lbl, "2, 2, fill, default");
-		
+
 		JSpinner port_input = new JSpinner();
 		port_input.setModel(new SpinnerNumberModel(1024, 1024, 65535, 1));
 		getContentPane().add(port_input, "4, 2, fill, default");
-		
+
 		JButton confirm_btn = new JButton("Confirm");
 		confirm_btn.setVerticalAlignment(SwingConstants.BOTTOM);
 		confirm_btn.addMouseListener(new MouseAdapter() {
@@ -92,7 +79,7 @@ public class Preferences extends JFrame{
 			}
 		});
 		getContentPane().add(confirm_btn, "2, 4, fill, default");
-		
+
 		JButton cancel_btn = new JButton("Cancel");
 		cancel_btn.addMouseListener(new MouseAdapter() {
 			@Override
