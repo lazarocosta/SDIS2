@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
+
 import server.Peer;
 //import server.task.initiatorPeer.GetChunk;
 import utils.SimpleURL;
@@ -39,6 +41,26 @@ public class Restore {
 		// TODO ver se o proprio peer nao tem nenhum chunk
 		// em caso afirmativo copiar ja chunks para pasta tmp e atualizar
 		// receivedChunks array
+		//File data_dir = new File(Peer.dataPath);
+		File file_dir = new File(Peer.dataPath+Utils.FS+fileID);
+		if(file_dir.exists() && file_dir.isDirectory()){
+			File[] listOfFiles = file_dir.listFiles();
+			for(File f : listOfFiles){
+				int n = Integer.parseInt(f.getName());
+				File tempFile = new File(tmpFolderPath+Utils.FS+fileID);
+				tempFile.mkdir();
+				//Copiar para pasta temporária
+				try {
+					FileUtils.copyFile(file_dir,tempFile);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				receivedChunks[n] = true;
+			}
+		}
+		
+		
 		ArrayList<Socket> availableConnections = getAvailablePeers(fileID);
 
 		// Pede numero dos chunks que peers tenham
