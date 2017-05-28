@@ -177,9 +177,6 @@ public class FileManager extends JFrame {
 		});
 		contentPane.add(refresh_btn, "4, 2, fill, default");
 
-		JButton btnNewButton_2 = new JButton("New button");
-		contentPane.add(btnNewButton_2, "6, 2, fill, default");
-
 		JButton public_files_btn = new JButton("Public files");
 		public_files_btn.addMouseListener(new MouseAdapter() {
 			@Override
