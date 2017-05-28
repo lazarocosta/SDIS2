@@ -224,7 +224,8 @@ public class Restore {
 					String cmdSplit[] = new String(header).split("\\s+");
 					int chunkNumber = Integer.parseInt(cmdSplit[3]);
 					int size = Integer.parseInt(cmdSplit[4]);
-					byte[] body = new byte[size];
+					byte[] bodyEncripted = new byte[size];
+					byte[] body = Peer.hybridEncryption.decrypt(bodyEncripted);
 					dis.readFully(body);
 
 					try {

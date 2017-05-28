@@ -51,17 +51,26 @@ public class Backup {
                     }
                 } else numBytesRead = in.read(chunk, 0, MAX_SIZE_CHUNK);
 
+
+
+
+                byte[] chunkEncrypted = Peer.hybridEncryption.encrypt(chunk);
+                int sizeEncrypted = chunkEncrypted.length;
+
+
+
                 for (Socket s : availableConnections) {
                     DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
                     outToServer.writeBytes(new String("PUTCHUNK" + Utils.Space
                             + protocolVersion + Utils.Space
                             + fileID + Utils.Space
                             + i + Utils.Space
-                            + numBytesRead + Utils.Space
+                            + sizeEncrypted + Utils.Space
                             + Utils.CRLF));
-                    outToServer.write(chunk, 0, numBytesRead);
+                    outToServer.write(chunkEncrypted, 0, sizeEncrypted);
                     outToServer.flush();
                 }
+
 
                 //TODO
                 //NAO APAGAR, ENCRIPTACAO
