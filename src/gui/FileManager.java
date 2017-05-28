@@ -151,7 +151,8 @@ public class FileManager extends JFrame {
 					if (JOptionPane.showConfirmDialog(null, params, "File privacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 						//BACKUP START
 						try {
-							int fileID = Files.insertNewFile(Peer.connection, Peer.email, uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected());
+							//Change to add size
+							int fileID = Files.insertNewFile(Peer.connection, Peer.email, uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected(),uploadFileChooser.getSelectedFile().length());
 							System.out.println(fileID);
 
 							Thread backupThread = new Thread(){

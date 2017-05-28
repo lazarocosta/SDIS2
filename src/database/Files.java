@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import static java.lang.Math.toIntExact;
 
 public class Files {
 
@@ -83,11 +84,13 @@ public class Files {
 	 * @return Inserted File ID
 	 * @throws SQLException
 	 */
-	public static int insertNewFile(Connection c, String email, String name, boolean isPublic) throws SQLException {
-		PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.files(user_id, name, public) VALUES ((SELECT user_id FROM p2p.users WHERE email = ?), ?, ?) RETURNING file_id");
+	public static int insertNewFile(Connection c, String email, String name, boolean isPublic,long size) throws SQLException {
+		PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.files(user_id, name, public,size) VALUES ((SELECT user_id FROM p2p.users WHERE email = ?), ?, ?) RETURNING file_id");
 		preparedStatement.setString(1, email);
 		preparedStatement.setString(2, name);
 		preparedStatement.setBoolean(3, isPublic);
+		int size2 = toIntExact(size);
+		preparedStatement.setInt(4,size2);
 
 		ResultSet rs = preparedStatement.executeQuery();
 		if(rs.next()){
