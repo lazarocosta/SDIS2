@@ -1,16 +1,18 @@
 package security;
 
+import server.Peer;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
@@ -22,8 +24,8 @@ public class HybridEncryption {
     private PrivateKey asymmetricKeyPrivate;
     private SecretKeySpec symmetricKey;
     private IvParameterSpec iv;
-    private static String pathKeyPublic = "KEY_PUBLIC.key";
-    private static String pathKeySymmetric = "KEY_SYMMETRIC.key";
+  //  private static String pathKeyPublic = "KEY_PUBLIC.key";
+    //private static String pathKeySymmetric = "KEY_SYMMETRIC.key";
 
 
     public HybridEncryption() {
@@ -32,6 +34,7 @@ public class HybridEncryption {
     public HybridEncryption(KeyPair asymmetricKeyPair, SecretKeySpec symmetricKey, IvParameterSpec iv) {
         this.asymmetricKeyPublic = asymmetricKeyPair.getPublic();
         this.asymmetricKeyPrivate = asymmetricKeyPair.getPrivate();
+        this.symmetricKey= symmetricKey;
         this.iv = iv;
     }
 
@@ -50,8 +53,34 @@ public class HybridEncryption {
         }
     }
 
-    public void setAsymmetricKeyPrivate(PrivateKey asymmetricKeyPrivate) {
-        this.asymmetricKeyPrivate = asymmetricKeyPrivate;
+    public void bytesToAsymmetricKeyPrivate(KeyFactory kf, byte[] privateKeyBytes) {
+
+        try {
+            this.asymmetricKeyPrivate = kf.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void bytesToAsymmetricKeyPublic(KeyFactory kf, byte[] publicKeyBytes) {
+
+        try {
+            this.asymmetricKeyPublic =  kf.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void stringToSymmetricKey(String symmetricKeyBytes ) {
+
+        byte[] decodedKey = Base64.getDecoder().decode(symmetricKeyBytes);
+        this.symmetricKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+    }
+
+    public  String symmetricKeyToString (){
+
+        return Base64.getEncoder().encodeToString(this.symmetricKey.getEncoded());
     }
 
     public byte[] encrypt(byte[] value) {
@@ -78,6 +107,7 @@ public class HybridEncryption {
         return asymmetricKeyPrivate;
     }
 
+
     public SecretKeySpec getSymmetricKey() {
         return symmetricKey;
     }
@@ -85,6 +115,7 @@ public class HybridEncryption {
     public IvParameterSpec getIv() {
         return iv;
     }
+    /*
 
     public void saveKeysFile() {
 
@@ -135,12 +166,12 @@ public class HybridEncryption {
 
         return true;
     }
-
+*/
 //FOR TESTING
 
     public static void main(String[] args) {
 
-        HybridEncryption a = new HybridEncryption();
+    /*    HybridEncryption a = new HybridEncryption();
         a.generateKeys();
         System.out.println("Symmetric Antes--  " + a.getSymmetricKey());
         System.out.println("Assimetric Antes--  "  + a.getAsymmetricPublicKey());
@@ -152,6 +183,6 @@ public class HybridEncryption {
         HybridEncryption b = new HybridEncryption();
         b.loadKeysFile();
         System.out.println("Symettic depois    " + b.getSymmetricKey() );
-        System.out.println("Assimetric depois   " + b.getAsymmetricPublicKey());
+        System.out.println("Assimetric depois   " + b.getAsymmetricPublicKey());*/
     }
 }

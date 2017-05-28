@@ -52,11 +52,9 @@ public class Backup {
                 } else numBytesRead = in.read(chunk, 0, MAX_SIZE_CHUNK);
 
 
-
-
+                //TODO: ENCRIPTED CHUNK
                 byte[] chunkEncrypted = Peer.hybridEncryption.encrypt(chunk);
                 int sizeEncrypted = chunkEncrypted.length;
-
 
 
                 for (Socket s : availableConnections) {
@@ -71,52 +69,43 @@ public class Backup {
                     outToServer.flush();
                 }
 
+            }
 
-                //TODO
-                //NAO APAGAR, ENCRIPTACAO
-                //HybridEncryption encrypted = new HybridEncryption();
-                //int sizeEncrypted = (numBytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
-                //byte[] chunkEncrypted = new byte[sizeEncrypted];
-                //chunkEncrypted = encrypted.encrypt(chunk);
-                //encrypted.encryptedSymmetricKey();
-                //encrypted.saveKeysFile();
-			}
+            in.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-			in.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    private ArrayList<Socket> getAvailablePeers(String fileID) {
+        ArrayList<Socket> result = new ArrayList<Socket>();
 
-	private ArrayList<Socket> getAvailablePeers(String fileID) {
-		ArrayList<Socket> result = new ArrayList<Socket>();
+        try {
+            byte[] availableMsg = new String("PUTCHUNK?" + Utils.Space
+                    + "1.0" + Utils.Space
+                    + fileID + Utils.Space
+                    + Peer.simpleURL.toString() + Utils.Space
+                    + Utils.CRLF + Utils.CRLF).getBytes();
 
-		try {
-			byte[] availableMsg = new String("PUTCHUNK?" + Utils.Space
-					+ "1.0" + Utils.Space
-					+ fileID + Utils.Space
-					+ Peer.simpleURL.toString() + Utils.Space
-					+ Utils.CRLF + Utils.CRLF).getBytes();
+            Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey("AVAILABLE"));
 
-			Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey("AVAILABLE"));
+            //TODO criacao de serversocket
+            ServerSocket ss = new ServerSocket(Peer.port);
 
-			//TODO criacao de serversocket
-			ServerSocket ss = new ServerSocket(Peer.port);
-
-			Thread t = new Thread(){
-				public void run() {
-					try {
-						while(true){
-							Socket tmpConnection = ss.accept();
-							result.add(tmpConnection);
-							System.out.println("ACEITEI CONEXAO TCP DE:" + tmpConnection.getRemoteSocketAddress());
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			};
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        while (true) {
+                            Socket tmpConnection = ss.accept();
+                            result.add(tmpConnection);
+                            System.out.println("ACEITEI CONEXAO TCP DE:" + tmpConnection.getRemoteSocketAddress());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
 
             t.start();
             try {

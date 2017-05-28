@@ -8,11 +8,13 @@ import java.sql.SQLException;
 
 public class UsersKeys {
 
-    public static boolean insertUserKey(Connection c, int iduser, byte[] key) throws SQLException {
-        PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.userskeys(key, user_id) VALUES (?, ?)");
-        preparedStatement.setBytes(1, key);
+    public static boolean insertUserKey(Connection c, int iduser, byte[] asymmetrickeyprivate, byte[] asymmetrickeypublic,String symmetricKey) throws SQLException {
+        PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.userskeys(assymmetrickeyprivate,assymmetrickeypublic, symmetrickey,user_id) VALUES (?, ?, ?,?)");
+        preparedStatement.setBytes(1, asymmetrickeyprivate);
+        preparedStatement.setBytes(2, asymmetrickeypublic);
+        preparedStatement.setString(3, symmetricKey);
 
-        preparedStatement.setInt(2, iduser);
+        preparedStatement.setInt(4, iduser);
         preparedStatement.executeUpdate();
 
         System.out.println("inserted the keys in database successful");
@@ -20,7 +22,7 @@ public class UsersKeys {
         return true;
     }
 
-    public static byte[] loadUserKey(Connection c, int iduser) throws SQLException {
+    public static ResultSet loadUserKey(Connection c, int iduser) throws SQLException {
         PreparedStatement preparedStatement = c.prepareStatement("SELECT * FROM p2p.userskeys WHERE user_id= ?");
         preparedStatement.setInt(1, iduser);
         ResultSet rs = preparedStatement.executeQuery();
@@ -32,7 +34,7 @@ public class UsersKeys {
         }
         else {
             System.out.println("loaded the database keys successfully ");
-            return rs.getBytes("key");
+            return rs;
         }
 
     }

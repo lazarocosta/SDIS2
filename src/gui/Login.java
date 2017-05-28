@@ -11,12 +11,16 @@ import java.awt.event.MouseEvent;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -156,34 +160,35 @@ public class Login extends JFrame {
                                 Peer.hybridEncryption = new HybridEncryption();
                                 System.out.println("Peer_userid" +Peer.id);
 
-                                byte[] privateKeyBytes;
-                                if ((privateKeyBytes = UsersKeys.loadUserKey(Peer.connection, Peer.id)) != null) {
-
-                                    if(! Peer.hybridEncryption.loadKeysFile()){
-                                        System.err.println("Did not load the keys from the file");
-                                        throw new Exception();
-                                    }
-
+								ResultSet userKey = UsersKeys.loadUserKey(Peer.connection, Peer.id);
+								if (userKey != null) {
 
 
                                     KeyFactory kf = null; // or "EC" or whatever
                                     try {
                                         kf = KeyFactory.getInstance("RSA");
 
+									} catch (NoSuchAlgorithmException e ) {
+										e.printStackTrace();
+									}
 
-                                        PrivateKey privateKey = null;
-                                        privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+									byte[] privateKeyBytes= userKey.getBytes("assymmetrickeyprivate");
+                                    byte[] publicKeyBytes = userKey.getBytes("assymmetrickeypublic");
+                                    String secretKeySpec = userKey.getString("symmetrickey");
 
-                                        Peer.hybridEncryption.setAsymmetricKeyPrivate(privateKey);
+									Peer.hybridEncryption.bytesToAsymmetricKeyPrivate(kf, privateKeyBytes);
+									Peer.hybridEncryption.bytesToAsymmetricKeyPublic(kf, publicKeyBytes);
+									Peer.hybridEncryption.stringToSymmetricKey(secretKeySpec);
 
-                                    } catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
-                                        e1.printStackTrace();
-                                    }
+
                                 } else {
                                     Peer.hybridEncryption.generateKeys();
-                                    Peer.hybridEncryption.saveKeysFile();
+
                                     PrivateKey privateKey= Peer.hybridEncryption.getAsymmetricPrivateKey();
-                                    UsersKeys.insertUserKey(Peer.connection,Peer.id,privateKey.getEncoded());
+                                    PublicKey publicKey = Peer.hybridEncryption.getAsymmetricPublicKey();
+									String secretKeySpec = Peer.hybridEncryption.symmetricKeyToString();
+
+                                    UsersKeys.insertUserKey(Peer.connection,Peer.id,privateKey.getEncoded(), publicKey.getEncoded(),secretKeySpec );
                                 }
 
 

@@ -143,9 +143,11 @@ public class FileManager extends JFrame {
 						// BACKUP START
 						try {
 							// Change to add size
+							//TODO: ALTEREI O TAMANHO DO FILE
+							long sizeEncripted = (uploadFileChooser.getSelectedFile().length()/16+1)*16;
 							int fileID = Files.insertNewFile(Peer.connection, Peer.email,
 									uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected(),
-									uploadFileChooser.getSelectedFile().length());
+									sizeEncripted);
 							System.out.println(fileID);
 
 							Thread backupThread = new Thread() {
