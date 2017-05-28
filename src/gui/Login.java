@@ -174,11 +174,11 @@ public class Login extends JFrame {
 
 									byte[] privateKeyBytes= userKey.getBytes("assymmetrickeyprivate");
                                     byte[] publicKeyBytes = userKey.getBytes("assymmetrickeypublic");
-                                    String secretKeySpec = userKey.getString("symmetrickey");
+                                    byte[] secretKeySpec = userKey.getBytes("symmetrickey");
 
 									Peer.hybridEncryption.bytesToAsymmetricKeyPrivate(kf, privateKeyBytes);
 									Peer.hybridEncryption.bytesToAsymmetricKeyPublic(kf, publicKeyBytes);
-									Peer.hybridEncryption.stringToSymmetricKey(secretKeySpec);
+									Peer.hybridEncryption.decryptSymmetricKey(secretKeySpec);
 
 
                                 } else {
@@ -186,7 +186,7 @@ public class Login extends JFrame {
 
                                     PrivateKey privateKey= Peer.hybridEncryption.getAsymmetricPrivateKey();
                                     PublicKey publicKey = Peer.hybridEncryption.getAsymmetricPublicKey();
-									String secretKeySpec = Peer.hybridEncryption.symmetricKeyToString();
+									byte[] secretKeySpec = Peer.hybridEncryption.encryptedSymmetricKey();
 
                                     UsersKeys.insertUserKey(Peer.connection,Peer.id,privateKey.getEncoded(), publicKey.getEncoded(),secretKeySpec );
                                 }

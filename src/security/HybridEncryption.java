@@ -72,17 +72,6 @@ public class HybridEncryption {
     }
 
 
-    public void stringToSymmetricKey(String symmetricKeyBytes ) {
-
-        byte[] decodedKey = Base64.getDecoder().decode(symmetricKeyBytes);
-        this.symmetricKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-    }
-
-    public  String symmetricKeyToString (){
-
-        return Base64.getEncoder().encodeToString(this.symmetricKey.getEncoded());
-    }
-
     public byte[] encrypt(byte[] value) {
         return Encryptor.encryptAES(this.symmetricKey, this.iv, value);
     }

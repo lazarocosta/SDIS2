@@ -8,11 +8,11 @@ import java.sql.SQLException;
 
 public class UsersKeys {
 
-    public static boolean insertUserKey(Connection c, int iduser, byte[] asymmetrickeyprivate, byte[] asymmetrickeypublic,String symmetricKey) throws SQLException {
+    public static boolean insertUserKey(Connection c, int iduser, byte[] asymmetrickeyprivate, byte[] asymmetrickeypublic,byte[] symmetricKey) throws SQLException {
         PreparedStatement preparedStatement = c.prepareStatement("INSERT INTO p2p.userskeys(assymmetrickeyprivate,assymmetrickeypublic, symmetrickey,user_id) VALUES (?, ?, ?,?)");
         preparedStatement.setBytes(1, asymmetrickeyprivate);
         preparedStatement.setBytes(2, asymmetrickeypublic);
-        preparedStatement.setString(3, symmetricKey);
+        preparedStatement.setBytes(3, symmetricKey);
 
         preparedStatement.setInt(4, iduser);
         preparedStatement.executeUpdate();
