@@ -52,7 +52,7 @@ public final class Utils {
 				bytesRead = fis.read(chunk, 0, (int) chunkFile.length());
 				assert (bytesRead == chunk.length);
 				assert (bytesRead == (int) chunkFile.length());
-				fos.write(chunk);
+				fos.write(Peer.hybridEncryption.decrypt(chunk));
 				fos.flush();
 				chunk = null;
 				fis.close();
