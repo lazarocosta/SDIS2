@@ -14,74 +14,74 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class TLS {
 
-	public static SSLContext sslContext = null;
+    public static SSLContext sslContext = null;
 
-	public static SSLContext createSSLContext() {
+    public static SSLContext createSSLContext() {
 
-		try {
-			// configure SSL
-			char[] password = "123456".toCharArray();
-			KeyStore ks = KeyStore.getInstance("JKS");
-			KeyStore ts = KeyStore.getInstance("JKS");
+        try {
+            // configure SSL
+            char[] password = "123456".toCharArray();
+            KeyStore ks = KeyStore.getInstance("JKS");
+            KeyStore ts = KeyStore.getInstance("JKS");
 
-			File keyFile = new File("./certificates/server.keys");
-			ks.load(new FileInputStream(keyFile), password);
+            File keyFile = new File("./certificates/server.keys");
+            ks.load(new FileInputStream(keyFile), password);
 
-			File trustStoreFile = new File("./certificates/truststore");
-			ts.load(new FileInputStream(trustStoreFile), password);
+            File trustStoreFile = new File("./certificates/truststore");
+            ts.load(new FileInputStream(trustStoreFile), password);
 
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(ks, password);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, password);
 
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-			tmf.init(ts);
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+            tmf.init(ts);
 
-			SSLContext sslContext = SSLContext.getInstance("TLS"); // create SSL
-																	// context
-			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            SSLContext sslContext = SSLContext.getInstance("TLS"); // create SSL
+            // context
+            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-			TLS.sslContext = sslContext;
+            TLS.sslContext = sslContext;
 
-			return sslContext;
+            return sslContext;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-			return null;
-		}
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+            return null;
+        }
 
-	}
+    }
 
-	public static ServerSocket createServerSocket(int port) {
+    public static ServerSocket createServerSocket(int port) {
 
-		if (TLS.sslContext == null) {
-			createSSLContext();
-		}
+        if (TLS.sslContext == null) {
+            createSSLContext();
+        }
 
-		try {
-			return TLS.sslContext.getServerSocketFactory().createServerSocket(port);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+        try {
+            return TLS.sslContext.getServerSocketFactory().createServerSocket(port);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-	public static Socket createClientSocket(InetAddress host, int port) {
+    public static Socket createClientSocket(InetAddress host, int port) {
 
-		if (TLS.sslContext == null) {
-			createSSLContext();
-		}
+        if (TLS.sslContext == null) {
+            createSSLContext();
+        }
 
-		try {
-			return TLS.sslContext.getSocketFactory().createSocket(host, port);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+        try {
+            return TLS.sslContext.getSocketFactory().createSocket(host, port);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-	// For testing
-	public static void main(String[] args) {
+    // For testing
+    public static void main(String[] args) {
 
-	}
+    }
 }
