@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
 
+import security.TLS;
 import server.Peer;
 import utils.SimpleURL;
 import utils.StringKey;
@@ -91,7 +92,7 @@ public class Backup {
             Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey("AVAILABLE"));
 
             //TODO criacao de serversocket
-            ServerSocket ss = new ServerSocket(Peer.port);
+            ServerSocket ss = TLS.createServerSocket(Peer.port);
 
             Thread t = new Thread() {
                 public void run() {

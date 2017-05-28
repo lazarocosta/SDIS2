@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import security.TLS;
 import server.Peer;
 //import server.task.initiatorPeer.GetChunk;
 import utils.SimpleURL;
@@ -178,7 +179,7 @@ public class Restore {
             Set<Serializable> availablePeers = Peer.chord.retrieve(new StringKey(fileID));
 
             // TODO criacao de socket
-            ServerSocket ss = new ServerSocket(Peer.port);
+            ServerSocket ss = TLS.createServerSocket(Peer.port);
 
             Thread t = new Thread() {
                 public void run() {

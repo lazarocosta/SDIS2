@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 
+import security.TLS;
 import server.Peer;
 import utils.Utils;
 
@@ -33,7 +34,7 @@ public class Restore implements Runnable {
         Socket s = null;
         try {
             // TODO criacao de socket
-            s = new Socket(InetAddress.getByName(this.ipAddress), this.port);
+            s = TLS.createClientSocket(InetAddress.getByName(this.ipAddress), this.port);
             while (true) {
                 DataInputStream dis = new DataInputStream(s.getInputStream());
                 DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
