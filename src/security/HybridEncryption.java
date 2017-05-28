@@ -18,8 +18,8 @@ public class HybridEncryption {
     private PrivateKey asymmetricKeyPrivate;
     private SecretKeySpec symmetricKey;
     private IvParameterSpec iv;
-    public static String pathKeyPublic = "KEY_PUBLIC.key";
-    public static String pathKeySymmetric = "KEY_SYMMETRIC.key";
+    private static String pathKeyPublic = "KEY_PUBLIC.key";
+    private static String pathKeySymmetric = "KEY_SYMMETRIC.key";
 
 
     public HybridEncryption() {
@@ -38,9 +38,16 @@ public class HybridEncryption {
             this.asymmetricKeyPrivate = keyPair.getPrivate();
             this.symmetricKey = Encryptor.generateSymmetricKey();
             this.iv = Encryptor.generateIV();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | UnsupportedEncodingException e) {
+
+
+            System.out.println("generate keys completed");
+        } catch (NoSuchAlgorithmException | NoSuchProviderException| NoSuchPaddingException | UnsupportedEncodingException  e) {
             e.printStackTrace();
         }
+    }
+
+    public void setAsymmetricKeyPrivate(PrivateKey asymmetricKeyPrivate) {
+        this.asymmetricKeyPrivate = asymmetricKeyPrivate;
     }
 
     public byte[] encrypt(byte[] value) {
@@ -77,7 +84,6 @@ public class HybridEncryption {
 
     public void saveKeysFile() {
 
-
         try {
             ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(pathKeySymmetric));
             outputStream.writeObject(symmetricKey);
@@ -94,6 +100,7 @@ public class HybridEncryption {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Saved the keys to the file successfully");
 
 
     }
@@ -120,30 +127,8 @@ public class HybridEncryption {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        System.out.println("Uploaded the keys to the file successfully");
 
-      /*  try {
-            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(pathKeyPublic));
-
-            byte[] dataRead = new byte[1000];
-            System.out.println(inputStream.read());
-          //  this.decryptSymmetricKey(dataRead);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        try {
-            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(pathKeySymmetric));
-
-
-            System.out.println(inputStream.read());
-
-        } catch (IOException  e) {
-            e.printStackTrace();
-            return false;
-        }
-*/
         return true;
     }
 
