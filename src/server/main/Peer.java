@@ -40,7 +40,6 @@ import utils.Utils;
 
 public class Peer{
 
-	public static Peer node = null;
 	public static Connection connection;
 	public static String email = null;
 	public static boolean local_connection = false;
@@ -68,7 +67,7 @@ public class Peer{
 	//public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
 	//public static HashSet<String> deletedFiles = new HashSet<String>();
 
-	public void initialize(){		
+	public static void initialize(){		
 		path = "." + Utils.FS + serverID;
 		dataPath = path + Utils.FS + "data";
 		Utils.initFileSystem();
@@ -84,13 +83,13 @@ public class Peer{
 		System.out.println("Max capacity: " + 0);
 	}
 
-	public void startListening(){
+	public static void startListening(){
 		listener = new Listener();
 		listenerThread = new Thread(listener);
 		listenerThread.start();
 	}
 
-	public void safeClose(){
+	public static void safeClose(){
 			listenerThread.interrupt();
 			udpSocket.close();
 			chord.remove(new Key("AVAILABLE"), simpleURL);
@@ -108,7 +107,7 @@ public class Peer{
 	}
 
 
-	public boolean initializeIPAddressesAndPorts(boolean localConnection) {
+	public static boolean initializeIPAddressesAndPorts(boolean localConnection) {
 		local_connection = localConnection;
 
 		//LOCAL CONNECTION
@@ -264,7 +263,7 @@ public class Peer{
 	 * Announces it availability by inserting AVALABLE key
 	 * @param bootstrap URL of existing network, null to create a new network
 	 */
-	public void joinChordNetwork(String bootstrap){
+	public static void joinChordNetwork(String bootstrap){
 		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
@@ -301,7 +300,7 @@ public class Peer{
 	/**
 	 * Removes deleted files (obtained from db) from file system
 	 */
-	public void updateFileSystem(){
+	public static void updateFileSystem(){
 		File dir = new File(dataPath);
 
 		String[] fileIDs = dir.list();
@@ -339,7 +338,7 @@ public class Peer{
 	/**
 	 * Announce in chord network files with at least one chunk in its system
 	 */
-	public void insertMyFiles(){
+	public static void insertMyFiles(){
 		File dir = new File(dataPath);
 		String[] fileIDs = dir.list();
 		for (String fileID : fileIDs) {
@@ -353,7 +352,7 @@ public class Peer{
 	 * Opens a hole in NAT to be able to receive udp messages from available peers in chord network
 	 * @return
 	 */
-	public void udpHolePunch(){
+	public static void udpHolePunch(){
 			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
 			byte[] b2 = "Hello".getBytes();
 			byte[] b1 = new byte[6];

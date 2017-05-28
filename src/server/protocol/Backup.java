@@ -1,6 +1,5 @@
 package server.protocol;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,8 +14,6 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
-import de.uniba.wiai.lspi.chord.service.ServiceException;
-import security.HybridEncryption;
 import server.main.Peer;
 import utils.SimpleURL;
 import utils.Utils;
@@ -32,23 +28,6 @@ public class Backup {
         File f = new File(filePath);
         long fileLength = f.length();
         byte[] chunk = new byte[MAX_SIZE_CHUNK];
-
-        //get File ID
-        //String fileID = Utils.getFileID(filePath);
-        //String lastFileID = Peer.mdMap.get(filePath);
-        //if(lastFileID != null && lastFileID.equals(fileID)){
-        //}else{
-        //if(lastFileID != null && !lastFileID.equals(fileID)){
-        //	new Thread(new Delete(protocolVersion, lastFileID)).start();
-        //}
-        /*if(protocolVersion.equals("2.0")){
-				Peer.deletedFiles.remove(fileID); // remove from deleted files list
-				for(String delFileID: Peer.deletedFiles){
-					new Thread(new Delete(protocolVersion, delFileID)).start();
-				}
-			}*/
-        //Peer.mdMap.put(filePath,fileID);
-        //Utils.writeMD();
 
         ArrayList<Socket> availableConnections = getAvailablePeers(fileID);
 
@@ -88,30 +67,13 @@ public class Backup {
                     //System.out.println("FROM SERVER: " + modifiedSentence);
                 }
 
-                HybridEncryption encrypted = new HybridEncryption();
-                int sizeEncrypted = (numBytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
-                byte[] chunkEncrypted = new byte[sizeEncrypted];
-                chunkEncrypted = encrypted.encrypt(chunk);
-                encrypted.encryptedSymmetricKey();
-                encrypted.saveKeysFile();
-
-
-
-
-				/*Thread putChunkThread = new Thread(new PutChunk(
-						protocolVersion,
-						fileID,
-						i,
-						replicationDeg,
-						chunkEncrypted
-						));
-				putChunkThread.start();*/
-				/*try {
-					putChunkThread.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
+                //NAO APAGAR, ENCRIPTACAO
+                //HybridEncryption encrypted = new HybridEncryption();
+                //int sizeEncrypted = (numBytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
+                //byte[] chunkEncrypted = new byte[sizeEncrypted];
+                //chunkEncrypted = encrypted.encrypt(chunk);
+                //encrypted.encryptedSymmetricKey();
+                //encrypted.saveKeysFile();
 			}
 
 			in.close();
@@ -178,17 +140,5 @@ public class Backup {
             e.printStackTrace();
         }
         return result;
-        //RD
-        //InetAddress IPAddress = InetAddress.getByName(Peer.mdbAddress);
-        //DatagramPacket sendPacket = new DatagramPacket(header, header.length, IPAddress, Peer.mdbPort);
-
-		/*for (int i = 1; i <= 5; i++) {
-            Peer.node.udpSocket.send(sendPacket);
-            Thread.sleep(400 * i);
-            rds = Peer.rdMap.get(this.fileID + Utils.FS + this.chunkNo);
-            if (rds != null && rds[0] <= rds[1]) {
-                break;
-            }
-        }*/
     }
 }

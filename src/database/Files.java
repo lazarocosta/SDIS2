@@ -28,8 +28,9 @@ public class Files {
 			String name = rs.getString("name");
 			System.out.println(name);
 			String added_time = rs.getTimestamp("added_time").toString();
+			String size = "" + rs.getInt("size");
 
-			String[] file = new String[]{file_id,name,added_time};
+			String[] file = new String[]{file_id,name,added_time,size};
 			files.add(file);
 		};
 

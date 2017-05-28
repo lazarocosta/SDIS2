@@ -157,30 +157,30 @@ public class Login extends JFrame{
 								Peer.port = r.nextInt(65535-1024)+1024;
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
-								if(Peer.node.initializeIPAddressesAndPorts(local_check.isSelected())){
+								if(Peer.initializeIPAddressesAndPorts(local_check.isSelected())){
 									ProgressBar.frame.setStatus("Initializing UDP listening...");
-									Peer.node.startListening();
+									Peer.startListening();
 
 									if(!Peer.port_forwarded){
 										ProgressBar.frame.setStatus("Holepunching NAT...");
-										//Peer.node.udpHolePunch();
+										//Peer.udpHolePunch();
 									}
 
 									ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
 									if(local_check.isSelected()){
-										Peer.node.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
+										Peer.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
 									}else{
-										Peer.node.joinChordNetwork("telmo20.ddns.net:8080");
+										Peer.joinChordNetwork("telmo20.ddns.net:8080");
 									}
 
 									ProgressBar.frame.setStatus("Initializing file system...");
-									Peer.node.initialize();
+									Peer.initialize();
 
 									ProgressBar.frame.setStatus("Updating data folder...");
-									Peer.node.updateFileSystem();
+									Peer.updateFileSystem();
 
 									ProgressBar.frame.setStatus("Announcing my chunks...");
-									Peer.node.insertMyFiles();
+									Peer.insertMyFiles();
 
 									ProgressBar.frame.setStatus("Login successful!");
 

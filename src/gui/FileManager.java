@@ -23,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
@@ -41,6 +42,7 @@ import de.uniba.wiai.lspi.chord.service.ServiceException;
 import server.main.Peer;
 import server.protocol.Backup;
 import server.protocol.Delete;
+import server.protocol.Restore;
 
 public class FileManager extends JFrame {
 
@@ -53,6 +55,8 @@ public class FileManager extends JFrame {
 	private JLabel footer_lbl;
 
 	private int[] fileIDs;
+	private String[] fileNames;
+	private int[] fileSizes;
 
 	/**
 	 * Create the frame.
@@ -61,7 +65,7 @@ public class FileManager extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				Peer.node.safeClose();
+				Peer.safeClose();
 			}
 		});
 		setTitle("P2P Cloud File Manager");
@@ -129,6 +133,8 @@ public class FileManager extends JFrame {
 						RowSpec.decode("default:grow"),
 						FormSpecs.RELATED_GAP_ROWSPEC,
 						FormSpecs.DEFAULT_ROWSPEC,}));
+		JScrollPane scrollPane = new JScrollPane();
+		contentPane.add(scrollPane, "2, 4, 7, 1, fill, fill");
 
 		JButton upload_btn = new JButton("Upload file");
 		upload_btn.addMouseListener(new  MouseAdapter(){
@@ -215,7 +221,7 @@ public class FileManager extends JFrame {
 				}
 			}
 		});
-		contentPane.add(tree, "2, 4, 7, 1, fill, fill");
+		scrollPane.setViewportView(tree);
 
 		JPanel footer = new JPanel();
 		footer.setToolTipText("");
@@ -246,13 +252,18 @@ public class FileManager extends JFrame {
 		DefaultTreeModel dtm;
 		dtm = new DefaultTreeModel(
 				new DefaultMutableTreeNode("Files") {
+
 					{
 						try{
 							ArrayList<String[]> files = Files.getFileNames(Peer.connection, Peer.email);
 							fileIDs = new int[files.size()];
+							fileNames = new String[files.size()];
+							fileSizes = new int[files.size()];
 							for(int i=0; i < files.size(); i++){
 								add(new DefaultMutableTreeNode(String.format("%-40s (%s)",files.get(i)[1],files.get(i)[2])));
-								fileIDs[i] = Integer.parseInt(files.get(i)[0]); 
+								fileIDs[i] = Integer.parseInt(files.get(i)[0]);
+								fileNames[i] = files.get(i)[1]; 
+								fileSizes[i] = Integer.parseInt(files.get(i)[3]); 
 							}
 
 						} catch (SQLException e) {
@@ -283,6 +294,8 @@ public class FileManager extends JFrame {
 			}else if(actionEvent.getActionCommand().equals("Restore")){
 				//RESTORE
 				int fileID = fileIDs[tree.getLeadSelectionRow()];
+				String fileName = fileNames[tree.getLeadSelectionRow()];
+				int fileSize = fileSizes[tree.getLeadSelectionRow()];
 				JFileChooser selectFolder = new JFileChooser();
 				selectFolder.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				if (selectFolder.showOpenDialog(FileManager.this) == JFileChooser.APPROVE_OPTION) { 
@@ -290,7 +303,7 @@ public class FileManager extends JFrame {
 					//RESTORE START
 						Thread restoreThread = new Thread(){
 							public void run(){
-								//new Restore("1.0", "" +fileID, selectFolder.getCurrentDirectory());
+								new Restore("1.0", "" +fileID, fileName, fileSize, selectFolder.getSelectedFile().getAbsolutePath());
 							}
 						};
 						restoreThread.start();
