@@ -10,11 +10,10 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
 
 import server.Peer;
 //import server.task.initiatorPeer.GetChunk;
@@ -38,20 +37,18 @@ public class Restore {
 		// Arrays of chunks received (default all false)
 		receivedChunks = new boolean[numChunks];
 
-		// TODO ver se o proprio peer nao tem nenhum chunk
-		// em caso afirmativo copiar ja chunks para pasta tmp e atualizar
-		// receivedChunks array
-		//File data_dir = new File(Peer.dataPath);
+		
 		File file_dir = new File(Peer.dataPath+Utils.FS+fileID);
 		if(file_dir.exists() && file_dir.isDirectory()){
 			File[] listOfFiles = file_dir.listFiles();
 			for(File f : listOfFiles){
 				int n = Integer.parseInt(f.getName());
-				File tempFile = new File(tmpFolderPath+Utils.FS+fileID);
-				tempFile.mkdir();
-				//Copiar para pasta temporária
+				File chunk_file = new File(Peer.dataPath+Utils.FS+fileID + Utils.FS + n);
+				File tempFile = new File(tmpFolderPath+Utils.FS+n);
+				//tempFile.mkdir();
+				//Copiar para pasta temporaria
 				try {
-					FileUtils.copyFile(file_dir,tempFile);
+					Files.copy(chunk_file.toPath(),tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -246,8 +243,9 @@ public class Restore {
 					String cmdSplit[] = new String(header).split("\\s+");
 					int chunkNumber = Integer.parseInt(cmdSplit[3]);
 					int size = Integer.parseInt(cmdSplit[4]);
-					byte[] bodyEncripted = new byte[size];
-					byte[] body = Peer.hybridEncryption.decrypt(bodyEncripted);
+					//byte[] bodyEncripted = new byte[size];
+					//byte[] body = Peer.hybridEncryption.decrypt(bodyEncripted);
+					byte[] body = new byte[size];
 					dis.readFully(body);
 
 					try {
