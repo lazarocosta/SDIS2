@@ -1,6 +1,5 @@
 package gui;
 
-
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +25,8 @@ import com.jgoodies.forms.layout.RowSpec;
 import database.MyConnection;
 import database.Users;
 
-public class Register extends JFrame{
+@SuppressWarnings("serial")
+public class Register extends JFrame {
 
 	public static Register frame;
 
@@ -56,32 +56,17 @@ public class Register extends JFrame{
 		this.setResizable(false);
 		this.setBounds(100, 100, 450, 300);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-				new RowSpec[] {
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,});
+		FormLayout formLayout = new FormLayout(
+				new ColumnSpec[] { FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, },
+				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, });
 		this.getContentPane().setLayout(formLayout);
 
 		JLabel title_lbl = new JLabel("P2P Client");
@@ -125,28 +110,28 @@ public class Register extends JFrame{
 
 		JButton register_btn = new JButton("Register");
 		register_btn.addMouseListener(new MouseAdapter() {
+			@SuppressWarnings("deprecation")
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if((password_input.getPassword().length >= 8) && password_input.getText().equals(password_confirm_input.getText())){
+				if ((password_input.getPassword().length >= 8)
+						&& password_input.getText().equals(password_confirm_input.getText())) {
 					Connection c;
 					try {
 						c = MyConnection.createConnection();
-					
-					if(Users.registerNewUser(c, email_input.getText(), password_input.getText())){
-						frame.dispose();
-						Login.frame.setVisible(true);
-					}
+
+						if (Users.registerNewUser(c, email_input.getText(), password_input.getText())) {
+							frame.dispose();
+							Login.frame.setVisible(true);
+						}
 					} catch (ClassNotFoundException | SQLException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-				}
-				else
-				{
-					if(password_input.getPassword().length < 8)
+				} else {
+					if (password_input.getPassword().length < 8)
 						message_lbl.setText("Password has to be at least 8 characters long.");
 
-					if(!(password_input.getText().equals(password_confirm_input.getText())))
+					if (!(password_input.getText().equals(password_confirm_input.getText())))
 						message_lbl.setText("Passwords do not match.");
 
 					message_lbl.setVisible(true);

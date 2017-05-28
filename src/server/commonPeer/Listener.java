@@ -1,11 +1,9 @@
-package server.main;
+package server.commonPeer;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.Socket;
 
-import server.task.commonPeer.*;
+import server.Peer;
 import utils.SimpleURL;
 
 public class Listener implements Runnable {
@@ -13,7 +11,6 @@ public class Listener implements Runnable {
 	@Override
 	public void run() {
 		try {
-			// Get GETCHUNK, DELETE or REMOVED command
 			byte[] buf = new byte[70000];
 			DatagramPacket receivedCmd = new DatagramPacket(buf, buf.length);
 			while (!Thread.currentThread().isInterrupted()) {
@@ -22,9 +19,8 @@ public class Listener implements Runnable {
 				if (cmdSplit[1].equals("1.0") || cmdSplit[1].equals(Peer.protocolVersion)) { //Always accept messages with version 1.0 but only accepts with version 2.0 if the running protocolVersion is also 2.0
 					System.out.println(cmdSplit[0]);
 					if (cmdSplit[0].equals("DELETE")) {
-						System.out.println("RECEBI DELETE!!!!");
 						new Thread(new Delete(
-								cmdSplit[2],
+								cmdSplit[1],
 								cmdSplit[3]
 								)).start();
 					} else if (cmdSplit[0].equals("PUTCHUNK?")){
@@ -32,7 +28,7 @@ public class Listener implements Runnable {
 						//TODO confirmar se pode mesmo se ligar para receber
 						//Passar para outra funcao
 						SimpleURL url = new SimpleURL(cmdSplit[3]);
-						new Thread(new PutChunk(
+						new Thread(new Backup(
 								cmdSplit[1], //Version
 								cmdSplit[2],
 								url.getIpAddress(),
@@ -43,14 +39,12 @@ public class Listener implements Runnable {
 						//TODO confirmar se pode mesmo se ligar para receber
 						//Passar para outra funcao
 						SimpleURL url = new SimpleURL(cmdSplit[3]);
-						new Thread(new GetChunk(
+						new Thread(new Restore(
 								cmdSplit[1], //Version
 								cmdSplit[2],
 								url.getIpAddress(),
 								url.getPort()
 								)).start();
-						//Socket s = new Socket(InetAddress.getByName(url.getIpAddress()), url.getPort());
-
 					}
 				}
 			}

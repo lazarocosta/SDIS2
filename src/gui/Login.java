@@ -26,9 +26,10 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import database.MyConnection;
 import database.Users;
-import server.main.Peer;
+import server.Peer;
 
-public class Login extends JFrame{
+@SuppressWarnings("serial")
+public class Login extends JFrame {
 
 	public static Login frame;
 
@@ -67,37 +68,21 @@ public class Login extends JFrame{
 		this.setTitle("P2P Cloud Login");
 		this.setResizable(false);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setSize(dim.width/3,dim.height/2);
-		this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+		this.setSize(dim.width / 3, dim.height / 2);
+		this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		FormLayout formLayout = new FormLayout(new ColumnSpec[] {
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("center:default:grow"),
-				FormSpecs.LABEL_COMPONENT_GAP_COLSPEC,},
-				new RowSpec[] {
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,});
+		FormLayout formLayout = new FormLayout(
+				new ColumnSpec[] { FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, ColumnSpec.decode("center:default:grow"),
+						FormSpecs.LABEL_COMPONENT_GAP_COLSPEC, },
+				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_ROWSPEC, });
 		this.getContentPane().setLayout(formLayout);
 
 		JLabel title_lbl = new JLabel("P2P Cloud");
@@ -140,58 +125,64 @@ public class Login extends JFrame{
 		login_btn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				//LOGIN PROCEDURE
+				// LOGIN PROCEDURE
 				ProgressBar.frame = new ProgressBar();
 				ProgressBar.frame.setVisible(true);
 				ProgressBar.frame.setStatus("Connecting to database...");
 				Login.frame.setEnabled(false);
-				Thread t = new Thread(){
+				Thread t = new Thread() {
 					public void run() {
 						try {
 							Peer.connection = MyConnection.createConnection();
 							ProgressBar.frame.setStatus("Attempt to login...");
-							if(Users.isLoginCorrect(Peer.connection, email_input.getText(), password_input.getText())){
+							@SuppressWarnings("deprecation")
+							int id = Users.isLoginCorrect(Peer.connection, email_input.getText(),
+									password_input.getText());
+							if (id != -1) {
+								Peer.id = id;
 								String email = email_input.getText();
 								Random r = new Random();
 								Peer.email = email;
-								Peer.port = r.nextInt(65535-1024)+1024;
+								Peer.port = r.nextInt(65535 - 1024) + 1024;
 
 								ProgressBar.frame.setStatus("Checking IP Address and Port...");
-								if(Peer.initializeIPAddressesAndPorts(local_check.isSelected())){
+								if (Peer.initializeIPAddressesAndPorts(local_check.isSelected())) {
 									ProgressBar.frame.setStatus("Initializing UDP listening...");
 									Peer.startListening();
 
-									if(!Peer.port_forwarded){
+									if (!Peer.port_forwarded) {
 										ProgressBar.frame.setStatus("Holepunching NAT...");
-										//Peer.udpHolePunch();
+										// Peer.udpHolePunch();
 									}
 
+									boolean joined = false;
 									ProgressBar.frame.setStatus("Joining P2P Cloud Network...");
-									if(local_check.isSelected()){
-										Peer.joinChordNetwork(!bootstrap_input.getText().equals("") ? bootstrap_input.getText():null);
-									}else{
-										Peer.joinChordNetwork("telmo20.ddns.net:8080");
+									if (local_check.isSelected()) {
+										joined = Peer.joinChordNetwork(!bootstrap_input.getText().equals("")
+												? bootstrap_input.getText() : null);
+									} else {
+										joined = Peer.joinChordNetwork("telmo20.ddns.net:8080");
 									}
+									if (joined) {
+										ProgressBar.frame.setStatus("Initializing file system...");
+										Peer.initialize();
 
-									ProgressBar.frame.setStatus("Initializing file system...");
-									Peer.initialize();
+										ProgressBar.frame.setStatus("Updating data folder...");
+										Peer.updateFileSystem();
 
-									ProgressBar.frame.setStatus("Updating data folder...");
-									Peer.updateFileSystem();
+										ProgressBar.frame.setStatus("Announcing my chunks...");
+										Peer.insertMyFiles();
 
-									ProgressBar.frame.setStatus("Announcing my chunks...");
-									Peer.insertMyFiles();
+										ProgressBar.frame.setStatus("Login successful!");
 
-									ProgressBar.frame.setStatus("Login successful!");
-
-									closeProgressBarAndResumeLogin();
-									Login.frame.setEnabled(false);
-									FileManager.frame = new FileManager();
-									FileManager.frame.setVisible(true);
-									frame.dispose();
+										closeProgressBarAndResumeLogin();
+										Login.frame.setEnabled(false);
+										FileManager.frame = new FileManager();
+										FileManager.frame.setVisible(true);
+										frame.dispose();
+									}
 								}
-							}
-							else{
+							} else {
 								Peer.connection.close();
 								message_lbl.setText("Incorrect username and/or password.");
 								message_lbl.setVisible(true);
@@ -220,14 +211,13 @@ public class Login extends JFrame{
 		});
 		this.getContentPane().add(register_btn, "2, 16, 3, 1, center, default");
 
-
 		register_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
 	}
 
-	private void closeProgressBarAndResumeLogin(){
+	private void closeProgressBarAndResumeLogin() {
 		Login.frame.setEnabled(true);
 		ProgressBar.frame.dispose();
 	}

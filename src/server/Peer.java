@@ -1,4 +1,4 @@
-package server.main;
+package server;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,7 +19,6 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
@@ -32,9 +31,9 @@ import org.xml.sax.SAXException;
 import database.Files;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
 import de.uniba.wiai.lspi.chord.data.URL;
-import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
+import server.commonPeer.Listener;
 import utils.SimpleURL;
 import utils.Utils;
 
@@ -53,22 +52,16 @@ public class Peer{
 	public static Thread listenerThread;
 	public static SimpleURL simpleURL;
 	public static SimpleURL dhtURL;
+	public static int id;
 
 	public static String protocolVersion = "1.0";
-	public static String serverID = "1";
 	public static String path;
 	public static String dataPath;
 	public static long capacity = 0; //Capacity in bytes
 	public static long usedCapacity = 0; //Used space in bytes
-	//public static boolean saveRD = false;
-	//public static boolean checkRD = false;
-	//public static ConcurrentHashMap<String,String> mdMap = new ConcurrentHashMap<String,String>();
-	//public static ConcurrentHashMap<String,int[]> rdMap = new ConcurrentHashMap<String,int[]>();
-	//public static ConcurrentHashMap<String,ArrayList<String>> rdDetailedMap = new ConcurrentHashMap<String,ArrayList<String>>();
-	//public static HashSet<String> deletedFiles = new HashSet<String>();
 
 	public static void initialize(){		
-		path = "." + Utils.FS + serverID;
+		path = "." ;
 		dataPath = path + Utils.FS + "data";
 		Utils.initFileSystem();
 		usedCapacity = Utils.getusedCapacity();
@@ -78,7 +71,6 @@ public class Peer{
 		System.out.println("Services running...");
 
 		System.out.println("Running configurations:");
-		System.out.println("Server ID: " + serverID);
 		System.out.println("Data Path: " + dataPath);
 		System.out.println("Max capacity: " + 0);
 	}
@@ -90,20 +82,20 @@ public class Peer{
 	}
 
 	public static void safeClose(){
-			listenerThread.interrupt();
-			udpSocket.close();
-			chord.remove(new Key("AVAILABLE"), simpleURL);
-			chord.leave();
-			if(!local_connection){
-				try {
-					activeGW.deletePortMapping(port,"TCP");
-				
+		listenerThread.interrupt();
+		udpSocket.close();
+		chord.remove(new Key("AVAILABLE"), simpleURL);
+		chord.leave();
+		if(!local_connection){
+			try {
+				activeGW.deletePortMapping(port,"TCP");
+
 				activeGW.deletePortMapping(port,"UDP");
-				} catch (IOException | SAXException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			} catch (IOException | SAXException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 	}
 
 
@@ -174,7 +166,7 @@ public class Peer{
 					//NO GATEWAY, FIND EXTERNAL IP
 					java.net.URL whatismyip = new java.net.URL("http://checkip.amazonaws.com");
 					BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-					
+
 					Peer.IPAddress = in.readLine();
 					System.out.println(IPAddress);
 					simpleURL = new SimpleURL(IPAddress, port);
@@ -197,7 +189,7 @@ public class Peer{
 
 				// choose the first active gateway for the tests
 				Peer.activeGW = gatewayDiscover.getValidGateway();
-	
+
 				Peer.IPAddress = Peer.activeGW.getExternalIPAddress();
 				simpleURL = new SimpleURL(IPAddress, port);
 				dhtURL = new SimpleURL(IPAddress, port + 1);
@@ -263,36 +255,58 @@ public class Peer{
 	 * Announces it availability by inserting AVALABLE key
 	 * @param bootstrap URL of existing network, null to create a new network
 	 */
-	public static void joinChordNetwork(String bootstrap){
+	public static boolean joinChordNetwork(String bootstrap){
 		de.uniba.wiai.lspi.chord.service.PropertiesLoader.loadPropertyFile ();
 		String protocol = URL.KNOWN_PROTOCOLS.get(URL.SOCKET_PROTOCOL);
 		URL localURL = null;
 		try {
 			localURL = new URL (protocol + "://"+dhtURL.toString()+"/");
 		} catch (IOException e){
-			throw new RuntimeException (e);
+			return false;
+			//throw new RuntimeException (e);
 		}
 		if (bootstrap != null){
 			URL bootstrapURL = null;
 			try {
 				bootstrapURL = new URL (protocol + "://"+bootstrap+"/");
 			} catch (MalformedURLException e){
-				throw new RuntimeException (e);
+				//throw new RuntimeException (e);
+				return false;
+
 			}
 			chord = new ChordImpl();
 			try {
 				chord.join(localURL , bootstrapURL);
-				chord.insertAsync(new Key("AVAILABLE"), simpleURL);
+				chord.insert(new Key("AVAILABLE"), simpleURL);
+				return true;
 			} catch (ServiceException e) {
-				throw new RuntimeException("Could not join DHT!", e);
+				e.printStackTrace();
+				try {
+					chord.join(localURL , bootstrapURL);
+					chord.insert(new Key("AVAILABLE"), simpleURL);
+					return true;
+				} catch (ServiceException e1) {
+					e1.printStackTrace();
+					try {
+						chord.join(localURL , bootstrapURL);
+						chord.insert(new Key("AVAILABLE"), simpleURL);
+						return true;
+					} catch (ServiceException e2) {
+						e2.printStackTrace();
+						return false;
+					}
+				}
+				//throw new RuntimeException("Could not join DHT!", e);
 			}
 		} else {
 			chord = new ChordImpl();
 			try {
 				chord.create(localURL);
 				//chord.insertAsync(new Key("AVAILABLE"), simpleURL);
+				return true;
 			} catch (ServiceException e) {
-				throw new RuntimeException("Could not create DHT!", e);
+				return false;
+				//throw new RuntimeException("Could not create DHT!", e);
 			}
 		}
 	}
@@ -353,72 +367,20 @@ public class Peer{
 	 * @return
 	 */
 	public static void udpHolePunch(){
-			Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
-			byte[] b2 = "Hello".getBytes();
-			byte[] b1 = new byte[6];
-			System.arraycopy(b2, 0, b1, 0, b2.length);
+		Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
+		byte[] b2 = "Hello".getBytes();
+		byte[] b1 = new byte[6];
+		System.arraycopy(b2, 0, b1, 0, b2.length);
 
-			for(Serializable s : paulo){
-				DatagramPacket packet;
-				try {
-					packet = new DatagramPacket(b1, b1.length, InetAddress.getByName(((SimpleURL)s).getIpAddress()), ((SimpleURL)s).getPort());
-					udpSocket.send(packet);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		for(Serializable s : paulo){
+			DatagramPacket packet;
+			try {
+				packet = new DatagramPacket(b1, b1.length, InetAddress.getByName(((SimpleURL)s).getIpAddress()), ((SimpleURL)s).getPort());
+				udpSocket.send(packet);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 	}
-
-	/*public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public GatewayDevice getActiveGW() {
-		return activeGW;
-	}
-
-	public void setActiveGW(GatewayDevice activeGW) {
-		this.activeGW = activeGW;
-	}
-
-	public Chord getChord() {
-		return chord;
-	}
-
-	public void setChord(ChordImpl chord) {
-		this.chord = chord;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String getIPAddress() {
-		return IPAddress;
-	}
-
-	public void setIPAddress(String iPAddress) {
-		IPAddress = iPAddress;
-	}
-
-
-	public DatagramSocket getUDPSocket() {
-		return udpSocket;
-	}
-
-
-	public boolean is_port_forwarded() {
-		return port_forwarded;
-	}
-
-
-	public SimpleURL getSimpleURL() {
-		return simpleURL;
-	}*/
-
 }

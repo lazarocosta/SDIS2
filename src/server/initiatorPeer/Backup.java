@@ -1,4 +1,4 @@
-package server.protocol;
+package server.initiatorPeer;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
-import server.main.Peer;
+import server.Peer;
 import utils.SimpleURL;
 import utils.Utils;
 
@@ -51,10 +51,8 @@ public class Backup {
                     }
                 } else numBytesRead = in.read(chunk, 0, MAX_SIZE_CHUNK);
 
-                //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 for (Socket s : availableConnections) {
                     DataOutputStream outToServer = new DataOutputStream(s.getOutputStream());
-                    //sentence = inFromUser.readLine();
                     outToServer.writeBytes(new String("PUTCHUNK" + Utils.Space
                             + protocolVersion + Utils.Space
                             + fileID + Utils.Space
@@ -63,10 +61,9 @@ public class Backup {
                             + Utils.CRLF));
                     outToServer.write(chunk, 0, numBytesRead);
                     outToServer.flush();
-                    //modifiedSentence = inFromServer.readLine();
-                    //System.out.println("FROM SERVER: " + modifiedSentence);
                 }
 
+                //TODO
                 //NAO APAGAR, ENCRIPTACAO
                 //HybridEncryption encrypted = new HybridEncryption();
                 //int sizeEncrypted = (numBytesRead / 16 + 1) * 16;// https://stackoverflow.com/questions/3283787/size-of-data-after-aes-cbc-and-aes-ecb-encryption
@@ -95,6 +92,7 @@ public class Backup {
 
 			Set<Serializable> availablePeers = Peer.chord.retrieve(new Key("AVAILABLE"));
 
+			//TODO criacao de serversocket
 			ServerSocket ss = new ServerSocket(Peer.port);
 
 			Thread t = new Thread(){
@@ -113,16 +111,13 @@ public class Backup {
 
             t.start();
             try {
-                //DatagramSocket clientSocket = new DatagramSocket();
                 for (Serializable peer : availablePeers) {
                     if (!Peer.simpleURL.equals(peer)) {
-                        System.out.println("vou mandar");
                         InetAddress IPAddress = InetAddress.getByName(((SimpleURL) peer).getIpAddress());
                         DatagramPacket sendPacket = new DatagramPacket(availableMsg, availableMsg.length, IPAddress, ((SimpleURL) peer).getPort());
                         Peer.udpSocket.send(sendPacket);
                     }
                 }
-                //clientSocket.close();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

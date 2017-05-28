@@ -38,12 +38,12 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import database.Files;
 import de.uniba.wiai.lspi.chord.console.command.entry.Key;
-import de.uniba.wiai.lspi.chord.service.ServiceException;
-import server.main.Peer;
-import server.protocol.Backup;
-import server.protocol.Delete;
-import server.protocol.Restore;
+import server.Peer;
+import server.initiatorPeer.Backup;
+import server.initiatorPeer.Delete;
+import server.initiatorPeer.Restore;
 
+@SuppressWarnings("serial")
 public class FileManager extends JFrame {
 
 	public static FileManager frame;
@@ -99,7 +99,7 @@ public class FileManager extends JFrame {
 			public void mousePressed(MouseEvent e) {
 				Preferences.frame = new Preferences();
 				Preferences.frame.setVisible(true);
-				//options_menu.setPopupMenuVisible(false);
+				// options_menu.setPopupMenuVisible(false);
 				frame.setEnabled(false);
 			}
 		});
@@ -116,29 +116,19 @@ public class FileManager extends JFrame {
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
-		contentPane.setLayout(new FormLayout(new ColumnSpec[] {
-				FormSpecs.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),
-				FormSpecs.RELATED_GAP_COLSPEC,},
-				new RowSpec[] {
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						FormSpecs.DEFAULT_ROWSPEC,
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("default:grow"),
-						FormSpecs.RELATED_GAP_ROWSPEC,
-						FormSpecs.DEFAULT_ROWSPEC,}));
+		contentPane.setLayout(new FormLayout(
+				new ColumnSpec[] { FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
+						FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"), FormSpecs.RELATED_GAP_COLSPEC,
+						ColumnSpec.decode("default:grow"), FormSpecs.RELATED_GAP_COLSPEC,
+						ColumnSpec.decode("default:grow"), FormSpecs.RELATED_GAP_COLSPEC, },
+				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC, FormSpecs.RELATED_GAP_ROWSPEC,
+						RowSpec.decode("default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC, }));
 		JScrollPane scrollPane = new JScrollPane();
 		contentPane.add(scrollPane, "2, 4, 7, 1, fill, fill");
 
 		JButton upload_btn = new JButton("Upload file");
-		upload_btn.addMouseListener(new  MouseAdapter(){
-			public void mouseClicked(MouseEvent arg0){
+		upload_btn.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent arg0) {
 				JFileChooser uploadFileChooser = new JFileChooser();
 				if (uploadFileChooser.showDialog(FileManager.this, "Upload") == JFileChooser.APPROVE_OPTION) {
 					String message = "Please select file privacy you want?";
@@ -147,17 +137,21 @@ public class FileManager extends JFrame {
 					ButtonGroup choices = new ButtonGroup();
 					choices.add(privateButton);
 					choices.add(publicButton);
-					Object[] params = {message, privateButton, publicButton};
-					if (JOptionPane.showConfirmDialog(null, params, "File privacy", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-						//BACKUP START
+					Object[] params = { message, privateButton, publicButton };
+					if (JOptionPane.showConfirmDialog(null, params, "File privacy",
+							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						// BACKUP START
 						try {
-							//Change to add size
-							int fileID = Files.insertNewFile(Peer.connection, Peer.email, uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected(),uploadFileChooser.getSelectedFile().length());
+							// Change to add size
+							int fileID = Files.insertNewFile(Peer.connection, Peer.email,
+									uploadFileChooser.getSelectedFile().getName(), publicButton.isSelected(),
+									uploadFileChooser.getSelectedFile().length());
 							System.out.println(fileID);
 
-							Thread backupThread = new Thread(){
-								public void run(){
-									new Backup("1.0", "" +fileID, uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
+							Thread backupThread = new Thread() {
+								public void run() {
+									new Backup("1.0", "" + fileID,
+											uploadFileChooser.getSelectedFile().getAbsolutePath(), 1);
 								}
 							};
 							backupThread.start();
@@ -239,82 +233,79 @@ public class FileManager extends JFrame {
 		tree.setModel(buildTreeModel());
 		updateFooter();
 		Set<Serializable> paulo = Peer.chord.retrieve(new Key("AVAILABLE"));
-		for(Serializable s : paulo){
+		for (Serializable s : paulo) {
 			System.out.println(s.toString());
 		}
 	}
 
-	private void updateFooter(){
-		footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " (" + Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
+	private void updateFooter() {
+		footer_lbl.setText(Peer.email + " , " + Peer.IPAddress + ":" + (Peer.port + 1) + " ("
+				+ Peer.chord.retrieve(new Key("AVAILABLE")).size() + " Peers)");
 	}
 
-
-	private DefaultTreeModel buildTreeModel(){
+	private DefaultTreeModel buildTreeModel() {
 		DefaultTreeModel dtm;
-		dtm = new DefaultTreeModel(
-				new DefaultMutableTreeNode("Files") {
-
-					{
-						try{
-							ArrayList<String[]> files = Files.getFileNames(Peer.connection, Peer.email);
-							fileIDs = new int[files.size()];
-							fileNames = new String[files.size()];
-							fileSizes = new int[files.size()];
-							for(int i=0; i < files.size(); i++){
-								add(new DefaultMutableTreeNode(String.format("%-40s (%s)",files.get(i)[1],files.get(i)[2])));
-								fileIDs[i] = Integer.parseInt(files.get(i)[0]);
-								fileNames[i] = files.get(i)[1]; 
-								fileSizes[i] = Integer.parseInt(files.get(i)[3]); 
-							}
-
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
+		dtm = new DefaultTreeModel(new DefaultMutableTreeNode("Files") {
+			{
+				try {
+					ArrayList<String[]> files = Files.getFileNames(Peer.connection, Peer.email);
+					fileIDs = new int[files.size()];
+					fileNames = new String[files.size()];
+					fileSizes = new int[files.size()];
+					for (int i = 0; i < files.size(); i++) {
+						add(new DefaultMutableTreeNode(String.format("%-40s (%s)", files.get(i)[1], files.get(i)[2])));
+						fileIDs[i] = Integer.parseInt(files.get(i)[0]);
+						fileNames[i] = files.get(i)[1];
+						fileSizes[i] = Integer.parseInt(files.get(i)[3]);
 					}
+
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
-				);
+			}
+		});
 		return dtm;
 	}
 
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
-			if(actionEvent.getActionCommand().equals("Delete")){
-				//DELETE
+			if (actionEvent.getActionCommand().equals("Delete")) {
+				// DELETE
 				int fileID = fileIDs[tree.getLeadSelectionRow()];
 				try {
 					Files.moveFileToDeleted(Peer.connection, fileID);
 
-					new Thread(new Delete(Peer.protocolVersion, ""+fileID)).start();
+					new Thread(new Delete(Peer.protocolVersion, "" + fileID)).start();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				refresh();
 
-
-			}else if(actionEvent.getActionCommand().equals("Restore")){
-				//RESTORE
+			} else if (actionEvent.getActionCommand().equals("Restore")) {
+				// RESTORE
 				int fileID = fileIDs[tree.getLeadSelectionRow()];
 				String fileName = fileNames[tree.getLeadSelectionRow()];
 				int fileSize = fileSizes[tree.getLeadSelectionRow()];
 				JFileChooser selectFolder = new JFileChooser();
 				selectFolder.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				if (selectFolder.showOpenDialog(FileManager.this) == JFileChooser.APPROVE_OPTION) { 
+				if (selectFolder.showOpenDialog(FileManager.this) == JFileChooser.APPROVE_OPTION) {
 					System.out.println("getCurrentDirectory(): " + selectFolder.getCurrentDirectory());
-					//RESTORE START
-						Thread restoreThread = new Thread(){
-							public void run(){
-								new Restore("1.0", "" +fileID, fileName, fileSize, selectFolder.getSelectedFile().getAbsolutePath());
-							}
-						};
-						restoreThread.start();
-				}else {
+					// RESTORE START
+					Thread restoreThread = new Thread() {
+						public void run() {
+							new Restore("1.0", "" + fileID, fileName, fileSize,
+									selectFolder.getSelectedFile().getAbsolutePath());
+						}
+					};
+					restoreThread.start();
+				} else {
 					System.out.println("No Selection ");
 				}
 
+			}
+			System.out.println("Selected: " + actionEvent.getActionCommand());
 		}
-		System.out.println("Selected: " + actionEvent.getActionCommand());
 	}
-}
 
 }
